@@ -1,6 +1,7 @@
 package com.enndfp.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.enndfp.pojo.Vlog;
 import com.enndfp.vo.VlogVO;
 import org.apache.ibatis.annotations.Param;
@@ -13,7 +14,9 @@ import java.util.Map;
  */
 public interface VlogMapper extends BaseMapper<Vlog> {
 
-    List<VlogVO> getIndexVlogList(@Param("paramMap")Map<String,Object> map);
+    Page<VlogVO> getIndexVlogList(Page<VlogVO> page, @Param("paramMap") Map<String, Object> map);
+
+    VlogVO getVlogDetailById(@Param("paramMap") Map<String, Object> map);
 
 }
 

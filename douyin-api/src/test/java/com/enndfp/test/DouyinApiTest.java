@@ -1,5 +1,6 @@
 package com.enndfp.test;
 
+import com.enndfp.mapper.VlogMapper;
 import com.enndfp.utils.RedisIdWorker;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -17,6 +18,9 @@ public class DouyinApiTest {
 
     @Resource
     private RedisIdWorker redisIdWorker;
+
+    @Resource
+    private VlogMapper vlogMapper;
 
     private ExecutorService es = Executors.newFixedThreadPool(500);
 
@@ -38,5 +42,10 @@ public class DouyinApiTest {
         latch.await();
         long end = System.currentTimeMillis();
         System.out.println("time=" + (end - begin));
+    }
+
+    @Test
+    void testPage(){
+
     }
 }

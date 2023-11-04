@@ -23,6 +23,7 @@ public enum ErrorCode {
     FILE_UPLOAD_FAILED(512, "文件上传失败！"),
     FILE_MAX_SIZE_2MB_ERROR(513, "仅支持2MB大小以下的图片上传！"),
     VLOG_PARAMS_ERROR(514, "视频参数错误！"),
+    VLOG_IS_NOT_EXIST(515, "视频不存在！"),
 
 
 

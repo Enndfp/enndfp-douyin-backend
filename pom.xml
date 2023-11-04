@@ -33,7 +33,6 @@
         <mysql-connector-j.version>8.0.31</mysql-connector-j.version>
         <mybatis-spring-boot-starter.version>2.2.2</mybatis-spring-boot-starter.version>
         <mybatis-plus-spring-boot-starter.version>3.5.2</mybatis-plus-spring-boot-starter.version>
-        <pagehelper-spring-boot-starter.version>1.2.12</pagehelper-spring-boot-starter.version>
 
         <okhttp.version>4.2.2</okhttp.version>
         <jackson.version>2.10.2</jackson.version>
@@ -72,12 +71,6 @@
                 <groupId>com.baomidou</groupId>
                 <artifactId>mybatis-plus-boot-starter</artifactId>
                 <version>${mybatis-plus-spring-boot-starter.version}</version>
-            </dependency>
-            <!--pagehelper -->
-            <dependency>
-                <groupId>com.github.pagehelper</groupId>
-                <artifactId>pagehelper-spring-boot-starter</artifactId>
-                <version>${pagehelper-spring-boot-starter.version}</version>
             </dependency>
 
             <dependency>

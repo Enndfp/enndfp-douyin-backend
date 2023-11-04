@@ -3,27 +3,19 @@ package com.enndfp.controller;
 import cn.hutool.core.util.PhoneUtil;
 import com.enndfp.common.BaseResponse;
 import com.enndfp.common.ErrorCode;
-import com.enndfp.config.MinIOConfig;
 import com.enndfp.dto.user.UserLoginRequest;
 import com.enndfp.dto.user.UserUpdateRequest;
-import com.enndfp.dto.user.UserUploadRequest;
-import com.enndfp.enums.FileTypeEnum;
 import com.enndfp.enums.UpdateParamsEnum;
-import com.enndfp.pojo.User;
 import com.enndfp.service.UserService;
-import com.enndfp.utils.RedisUtils;
 import com.enndfp.utils.ResultUtils;
 import com.enndfp.utils.ThrowUtils;
 import com.enndfp.vo.UserVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-
-import static com.enndfp.constant.RedisConstants.*;
 
 /**
  * @author Enndfp
@@ -99,7 +91,7 @@ public class UserController {
      * @return
      */
     @GetMapping("/query")
-    public BaseResponse<UserVO> query(@RequestParam Long userId) {
+    public BaseResponse<UserVO> queryById(@RequestParam Long userId) {
         // 1. 校验请求参数
         ThrowUtils.throwIf(userId == null, ErrorCode.PARAMS_ERROR);
         // 2. 查询用户信息
@@ -116,7 +108,8 @@ public class UserController {
      * @return
      */
     @PostMapping("/update")
-    public BaseResponse<UserVO> updateUser(@RequestBody UserUpdateRequest userUpdateRequest, @RequestParam Integer type) {
+    public BaseResponse<UserVO> updateUser(@RequestBody UserUpdateRequest userUpdateRequest,
+                                           @RequestParam Integer type) {
         // 1. 校验请求参数
         ThrowUtils.throwIf(userUpdateRequest == null, ErrorCode.PARAMS_ERROR);
         UpdateParamsEnum.validUpdateParamType(type);
@@ -125,5 +118,23 @@ public class UserController {
 
         return ResultUtils.success(userVO);
     }
+
+    /**
+     * 根据vlogId查询用户信息
+     *
+     * @param vlogId
+     * @return
+     */
+    @GetMapping("/queryByVlogId")
+    public BaseResponse<UserVO> queryByVlogId(@RequestParam Long vlogId) {
+        // 1. 校验请求参数
+        ThrowUtils.throwIf(vlogId == null, ErrorCode.PARAMS_ERROR);
+        // 2. 查询用户信息
+        UserVO userVO = userService.queryUserByVlogId(vlogId);
+
+        return ResultUtils.success(userVO);
+    }
+
+
 
 }

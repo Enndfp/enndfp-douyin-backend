@@ -34,6 +34,30 @@
         DESC
     </select>
 
+    <select id="getVlogDetailById" resultType="com.enndfp.vo.VlogVO" parameterType="map" >
+        SELECT
+            v.id as vlogId,
+            v.vlog_user_id as vlogerId,
+            u.face as vlogerFace,
+            u.nickname as vlogerName,
+            v.title as content,
+            v.url as url,
+            v.cover as cover,
+            v.width as width,
+            v.height as height,
+            v.like_counts as likeCounts,
+            v.comments_counts as commentsCounts,
+            v.is_private as isPrivate
+        FROM
+            vlog v
+        LEFT JOIN
+            user u
+        ON
+            v.vlog_user_id = u.id
+        WHERE
+            v.id = #{paramMap.vlogId}
+    </select>
+
     <resultMap id="BaseResultMap" type="com.enndfp.pojo.Vlog">
         <id property="id" column="id" jdbcType="BIGINT"/>
         <result property="vlogUserId" column="vlog_user_id" jdbcType="BIGINT"/>

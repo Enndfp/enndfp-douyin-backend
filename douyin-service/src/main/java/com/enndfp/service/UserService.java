@@ -80,4 +80,12 @@ public interface UserService extends IService<User> {
      */
     UserVO upload(UserUploadRequest userUploadRequest, String imgUrl);
 
+    /**
+     * 根据vlogId查询用户信息
+     *
+     * @param vlogId
+     * @return
+     */
+    UserVO queryUserByVlogId(Long vlogId);
+
 }

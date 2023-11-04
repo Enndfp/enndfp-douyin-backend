@@ -237,6 +237,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return BeanUtil.copyProperties(newUser, UserVO.class);
     }
 
+    @Override
+    public UserVO queryUserByVlogId(Long vlogId) {
+        User user = userMapper.queryUserByVlogId(vlogId);
+        ThrowUtils.throwIf(user == null, ErrorCode.USER_NOT_EXIST);
+        return BeanUtil.copyProperties(user, UserVO.class);
+    }
+
     private int getIntFromRedis(String key) {
         String valueStr = redisUtils.get(key);
         return StringUtils.isNotBlank(valueStr) ? Integer.parseInt(valueStr) : 0;

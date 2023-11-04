@@ -8,7 +8,7 @@ import com.enndfp.pojo.User;
  * @author Enndfp
  */
 public interface UserMapper extends BaseMapper<User> {
-
+    User queryUserByVlogId(Long vlogId);
 }
 
 
