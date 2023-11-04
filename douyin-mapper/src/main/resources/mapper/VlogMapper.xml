@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.enndfp.mapper.VlogMapper">
+
+    <select id="getIndexVlogList" resultType="com.enndfp.vo.VlogVO" parameterType="map">
+        SELECT
+            v.id as vlogId,
+            v.vlog_user_id as vlogerId,
+            u.face as vlogerFace,
+            u.nickname as vlogerName,
+            v.title as content,
+            v.url as url,
+            v.cover as cover,
+            v.width as width,
+            v.height as height,
+            v.like_counts as likeCounts,
+            v.comments_counts as commentsCounts,
+            v.is_private as isPrivate
+        FROM
+            vlog v
+        LEFT JOIN
+            user u
+        ON
+            v.vlog_user_id = u.id
+        WHERE
+            v.is_private = 0
+            <if test="paramMap.search != null and paramMap.search != ''">
+                AND v.title like '%${paramMap.search}%'
+            </if>
+        ORDER BY
+            v.created_time
+        DESC
+    </select>
+
+    <resultMap id="BaseResultMap" type="com.enndfp.pojo.Vlog">
+        <id property="id" column="id" jdbcType="BIGINT"/>
+        <result property="vlogUserId" column="vlog_user_id" jdbcType="BIGINT"/>
+        <result property="url" column="url" jdbcType="VARCHAR"/>
+        <result property="cover" column="cover" jdbcType="VARCHAR"/>
+        <result property="title" column="title" jdbcType="VARCHAR"/>
+        <result property="width" column="width" jdbcType="INTEGER"/>
+        <result property="height" column="height" jdbcType="INTEGER"/>
+        <result property="likeCounts" column="like_counts" jdbcType="INTEGER"/>
+        <result property="commentsCounts" column="comments_counts" jdbcType="INTEGER"/>
+        <result property="isPrivate" column="is_private" jdbcType="TINYINT"/>
+        <result property="createdTime" column="created_time" jdbcType="TIMESTAMP"/>
+        <result property="updatedTime" column="updated_time" jdbcType="TIMESTAMP"/>
+        <result property="isDeleted" column="is_deleted" jdbcType="TINYINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id
+        ,vlog_user_id,url,
+        cover,title,width,
+        height,like_counts,comments_counts,
+        is_private,created_time,updated_time,
+        is_deleted
+    </sql>
+</mapper>

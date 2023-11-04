@@ -1,0 +1,4 @@
+com\enndfp\config\MinIOConfig.class
+com\enndfp\controller\FileController.class
+com\enndfp\controller\UserController.class
+com\enndfp\controller\VlogController.class

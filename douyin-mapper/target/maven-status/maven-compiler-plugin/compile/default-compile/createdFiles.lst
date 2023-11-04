@@ -1,0 +1,6 @@
+com\enndfp\mapper\MyLikedVlogMapper.class
+com\enndfp\mapper\UserMapper.class
+com\enndfp\mapper\VlogMapper.class
+com\enndfp\mapper\CommentMapper.class
+com\enndfp\DouyinMapper.class
+com\enndfp\mapper\FansMapper.class

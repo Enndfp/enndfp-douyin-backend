@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.enndfp.mapper.UserMapper">
+
+    <resultMap id="BaseResultMap" type="com.enndfp.pojo.User">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="phone" column="phone" jdbcType="VARCHAR"/>
+            <result property="nickname" column="nickname" jdbcType="VARCHAR"/>
+            <result property="douyinNum" column="douyin_num" jdbcType="VARCHAR"/>
+            <result property="face" column="face" jdbcType="VARCHAR"/>
+            <result property="sex" column="sex" jdbcType="TINYINT"/>
+            <result property="birthday" column="birthday" jdbcType="DATE"/>
+            <result property="country" column="country" jdbcType="VARCHAR"/>
+            <result property="province" column="province" jdbcType="VARCHAR"/>
+            <result property="city" column="city" jdbcType="VARCHAR"/>
+            <result property="district" column="district" jdbcType="VARCHAR"/>
+            <result property="description" column="description" jdbcType="VARCHAR"/>
+            <result property="bgImg" column="bg_img" jdbcType="VARCHAR"/>
+            <result property="douyinUpdateAllowed" column="douyin_update_allowed" jdbcType="TINYINT"/>
+            <result property="createdTime" column="created_time" jdbcType="TIMESTAMP"/>
+            <result property="updatedTime" column="updated_time" jdbcType="TIMESTAMP"/>
+            <result property="isDeleted" column="is_deleted" jdbcType="TINYINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,phone,nickname,
+        douyin_num,face,sex,
+        birthday,country,province,
+        city,district,description,
+        bg_img,douyin_update_allowed,created_time,
+        updated_time,is_deleted
+    </sql>
+</mapper>

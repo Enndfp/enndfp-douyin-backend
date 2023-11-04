@@ -1,0 +1,8 @@
+com\enndfp\pojo\Comment.class
+com\enndfp\pojo\Vlog.class
+com\enndfp\dto\vlog\VlogPublishRequest.class
+com\enndfp\pojo\Fans.class
+com\enndfp\vo\VlogVO.class
+com\enndfp\pojo\MyLikedVlog.class
+com\enndfp\pojo\User.class
+com\enndfp\DouyinModel.class

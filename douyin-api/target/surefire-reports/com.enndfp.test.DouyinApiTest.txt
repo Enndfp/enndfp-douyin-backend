@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.enndfp.test.DouyinApiTest
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 9.258 s - in com.enndfp.test.DouyinApiTest
