@@ -24,10 +24,13 @@ public enum ErrorCode {
     FILE_MAX_SIZE_2MB_ERROR(513, "仅支持2MB大小以下的图片上传！"),
     VLOG_PARAMS_ERROR(514, "视频参数错误！"),
     VLOG_IS_NOT_EXIST(515, "视频不存在！"),
+    FOLLOW_FAILED(516, "关注失败，请稍后再试！"),
+    NOT_ALLOWED_FOLLOW_YOURSELF(517, "不允许关注自己！"),
+    CANCEL_FOLLOW_FAILED(518, "取消关注失败，请稍后再试！"),
+    NOT_FOLLOW(519, "您未关注对方！"),
 
 
 
-    UN_LOGIN(501, "请登录后再继续操作！"),
     TICKET_INVALID(502, "会话失效，请重新登录！"),
     SMS_NEED_WAIT_ERROR(505, "短信发送太快啦~请稍后再试！"),
     USER_FROZEN(507, "用户已被冻结，请联系管理员！"),

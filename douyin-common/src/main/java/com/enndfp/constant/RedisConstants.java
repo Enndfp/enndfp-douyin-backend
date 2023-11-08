@@ -18,10 +18,14 @@ public class RedisConstants {
     public static final String MY_FOLLOWS_COUNTS_KEY = "my:follows_counts:";
     // 我的粉丝总数
     public static final String MY_FANS_COUNTS_KEY = "my:fans_counts:";
+    // 博主和粉丝的关联关系，用户判断他们是否互相关注
+    public static final String FANS_AND_VLOGER_RELATIONSHIP_KEY = "fans_and_vloger_relationship:";
 
-    // 视频和发布者获赞数
+
+    // 视频获赞数
     public static final String VLOG_LIKE_COUNTS_KEY = "vlog:like_counts:";
-    public static final String VLOG_USER_LIKE_COUNTS_KEY = "vlog_user:like_counts:";
+    // 发布者获赞数
+    public static final String VLOGER_LIKE_COUNTS_KEY = "vloger:like_counts:";
 
 
 }

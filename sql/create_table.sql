@@ -63,15 +63,16 @@ create table my_liked_vlog
 
 create table fans
 (
-    id               bigint auto_increment comment 'id' primary key,
-    followed_user_id bigint                             not null comment '喜欢的作者用户id',
-    fan_user_id      bigint                             not null comment '粉丝用户id',
-    is_mutual_fan    tinyint                            not null comment '是否互相关注 0:否 1:是',
-    created_time     datetime default CURRENT_TIMESTAMP not null comment '创建时间',
-    updated_time     datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
-    is_deleted       tinyint  default 0                 not null comment '是否删除',
-    constraint unique_fan_followed
-        unique (fan_user_id, followed_user_id)
+    id            bigint auto_increment comment 'id' primary key,
+    fan_id        bigint                             not null comment '喜欢的作者用户id',
+    vloger_id     bigint                             not null comment '粉丝用户id',
+    is_mutual_fan tinyint                            not null comment '是否互相关注 0:否 1:是',
+    created_time  datetime default CURRENT_TIMESTAMP not null comment '创建时间',
+    updated_time  datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+    deleted_time  datetime default NULL              null comment '删除时间',
+    is_deleted    tinyint  default 0                 not null comment '是否删除',
+    constraint unique_fan_vloger_deleted_time
+        unique (fan_id, vloger_id,deleted_time)
 )
     comment '粉丝表';
 

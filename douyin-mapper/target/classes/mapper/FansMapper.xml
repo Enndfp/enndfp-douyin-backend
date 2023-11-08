@@ -3,20 +3,61 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.enndfp.mapper.FansMapper">
+    
+    <select id="queryMyFollows" resultType="com.enndfp.vo.VlogerVO" parameterType="map">
+        SELECT
+            u.id as vlogerId,
+            u.nickname as nickname,
+            u.face as face
+        FROM
+            fans f
+        LEFT JOIN
+            user u
+        ON
+            f.vloger_id = u.id
+        WHERE
+            f.fan_id = #{paramMap.fanId}
+        AND
+            f.is_deleted = 0
+        ORDER BY
+            u.nickname
+        ASC
+    </select>
+
+    <select id="queryMyFans" resultType="com.enndfp.vo.FansVO" parameterType="map">
+        SELECT
+            u.id as fanId,
+            u.nickname as nickname,
+            u.face as face
+        FROM
+            fans f
+        LEFT JOIN
+            user u
+        ON
+            f.fan_id = u.id
+        WHERE
+            f.vloger_id = #{paramMap.vlogerId}
+        AND
+            f.is_deleted = 0
+        ORDER BY
+            u.nickname
+        ASC
+    </select>
 
     <resultMap id="BaseResultMap" type="com.enndfp.pojo.Fans">
             <id property="id" column="id" jdbcType="BIGINT"/>
-            <result property="followedUserId" column="followed_user_id" jdbcType="BIGINT"/>
-            <result property="fanUserId" column="fan_user_id" jdbcType="BIGINT"/>
+            <result property="fanId" column="fan_id" jdbcType="BIGINT"/>
+            <result property="vlogerId" column="vloger_id" jdbcType="BIGINT"/>
             <result property="isMutualFan" column="is_mutual_fan" jdbcType="TINYINT"/>
             <result property="createdTime" column="created_time" jdbcType="TIMESTAMP"/>
             <result property="updatedTime" column="updated_time" jdbcType="TIMESTAMP"/>
+            <result property="deletedTime" column="deleted_time" jdbcType="TIMESTAMP"/>
             <result property="isDeleted" column="is_deleted" jdbcType="TINYINT"/>
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,followed_user_id,fan_user_id,
-        is_mutual_fan,created_time,updated_time,
+        id,fan_id,vloger_id,
+        is_mutual_fan,created_time,updated_time,deleted_time
         is_deleted
     </sql>
 </mapper>

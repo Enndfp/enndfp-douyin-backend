@@ -26,6 +26,8 @@
             v.vlog_user_id = u.id
         WHERE
             v.is_private = 0
+        AND
+            v.is_deleted = 0
             <if test="paramMap.search != null and paramMap.search != ''">
                 AND v.title like '%${paramMap.search}%'
             </if>
@@ -56,6 +58,8 @@
             v.vlog_user_id = u.id
         WHERE
             v.id = #{paramMap.vlogId}
+        AND
+            v.is_deleted = 0
     </select>
 
     <resultMap id="BaseResultMap" type="com.enndfp.pojo.Vlog">

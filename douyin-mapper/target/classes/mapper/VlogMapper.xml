@@ -26,12 +26,40 @@
             v.vlog_user_id = u.id
         WHERE
             v.is_private = 0
+        AND
+            v.is_deleted = 0
             <if test="paramMap.search != null and paramMap.search != ''">
                 AND v.title like '%${paramMap.search}%'
             </if>
         ORDER BY
             v.created_time
         DESC
+    </select>
+
+    <select id="getVlogDetailById" resultType="com.enndfp.vo.VlogVO" parameterType="map" >
+        SELECT
+            v.id as vlogId,
+            v.vlog_user_id as vlogerId,
+            u.face as vlogerFace,
+            u.nickname as vlogerName,
+            v.title as content,
+            v.url as url,
+            v.cover as cover,
+            v.width as width,
+            v.height as height,
+            v.like_counts as likeCounts,
+            v.comments_counts as commentsCounts,
+            v.is_private as isPrivate
+        FROM
+            vlog v
+        LEFT JOIN
+            user u
+        ON
+            v.vlog_user_id = u.id
+        WHERE
+            v.id = #{paramMap.vlogId}
+        AND
+            v.is_deleted = 0
     </select>
 
     <resultMap id="BaseResultMap" type="com.enndfp.pojo.Vlog">
