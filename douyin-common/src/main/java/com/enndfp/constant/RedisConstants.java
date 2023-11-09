@@ -26,6 +26,8 @@ public class RedisConstants {
     public static final String VLOG_LIKE_COUNTS_KEY = "vlog:like_counts:";
     // 发布者获赞数
     public static final String VLOGER_LIKE_COUNTS_KEY = "vloger:like_counts:";
+    // 用户是否喜欢/点赞视频，取代数据库的关联关系，1：喜欢，0：不喜欢（默认）
+    public static final String USER_LIKE_VLOG = "user_like_vlog:";
 
 
 }

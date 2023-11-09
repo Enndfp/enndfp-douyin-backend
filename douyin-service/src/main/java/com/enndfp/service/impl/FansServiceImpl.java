@@ -12,15 +12,11 @@ import com.enndfp.utils.RedisIdWorker;
 import com.enndfp.utils.RedisUtils;
 import com.enndfp.utils.ThrowUtils;
 import com.enndfp.vo.FansVO;
-import com.enndfp.vo.VlogVO;
 import com.enndfp.vo.VlogerVO;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -135,7 +131,6 @@ public class FansServiceImpl extends ServiceImpl<FansMapper, Fans>
 
         return fansMapper.queryMyFans(page, map);
     }
-
 
     /**
      * 查询是否是共同的粉丝

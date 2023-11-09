@@ -28,6 +28,14 @@ public interface VlogService extends IService<Vlog> {
     Page<VlogVO> getIndexVlogList(VlogQueryRequest vlogQueryRequest);
 
     /**
+     * 分页查询用户点赞过的短视频
+     *
+     * @param vlogQueryRequest
+     * @return
+     */
+    Page<VlogVO> getMyLikedVlogList(VlogQueryRequest vlogQueryRequest);
+
+    /**
      * 从搜索页点击查看vlog详情
      *
      * @param userId
@@ -53,5 +61,31 @@ public interface VlogService extends IService<Vlog> {
      * @return
      */
     Page<Vlog> queryMyVlogList(VlogQueryRequest vlogQueryRequest, Integer yesOrNo);
+
+    /**
+     * 用户点赞视频
+     *
+     * @param userId
+     * @param vlogerId
+     * @param vlogId
+     */
+    void userLikeVlog(Long userId, Long vlogerId, Long vlogId);
+
+    /**
+     * 用户取消点赞视频
+     *
+     * @param userId
+     * @param vlogerId
+     * @param vlogId
+     */
+    void userUnLikeVlog(Long userId, Long vlogerId, Long vlogId);
+
+    /**
+     * 获得用户点赞视频的总数
+     *
+     * @param vlogId
+     * @return
+     */
+    Integer getVlogBeLikedCounts(Long vlogId);
 
 }

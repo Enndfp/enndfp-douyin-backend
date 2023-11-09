@@ -51,28 +51,29 @@ create table vlog
 create table my_liked_vlog
 (
     id           bigint auto_increment comment 'id' primary key,
-    user_id      bigint                             not null comment '用户id',
-    vlog_id      bigint                             not null comment '短视频id',
-    created_time datetime default CURRENT_TIMESTAMP not null comment '创建时间',
-    updated_time datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
-    is_deleted   tinyint  default 0                 not null comment '是否删除',
-    constraint unique_user_liked_vlog
-        unique (user_id, vlog_id)
+    user_id      bigint                                 not null comment '用户id',
+    vlog_id      bigint                                 not null comment '短视频id',
+    created_time datetime default CURRENT_TIMESTAMP     not null comment '创建时间',
+    updated_time datetime default CURRENT_TIMESTAMP     not null on update CURRENT_TIMESTAMP comment '更新时间',
+    deleted_time datetime default '2000-01-01 00:00:01' not null comment '删除时间',
+    is_deleted   tinyint  default 0                     not null comment '是否删除',
+    constraint unique_user_liked_vlog_deleted_time
+        unique (user_id, vlog_id, deleted_time)
 )
     comment '点赞短视频关系表';
 
 create table fans
 (
     id            bigint auto_increment comment 'id' primary key,
-    fan_id        bigint                             not null comment '喜欢的作者用户id',
-    vloger_id     bigint                             not null comment '粉丝用户id',
-    is_mutual_fan tinyint                            not null comment '是否互相关注 0:否 1:是',
-    created_time  datetime default CURRENT_TIMESTAMP not null comment '创建时间',
-    updated_time  datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
-    deleted_time  datetime default NULL              null comment '删除时间',
-    is_deleted    tinyint  default 0                 not null comment '是否删除',
+    fan_id        bigint                                 not null comment '喜欢的作者用户id',
+    vloger_id     bigint                                 not null comment '粉丝用户id',
+    is_mutual_fan tinyint                                not null comment '是否互相关注 0:否 1:是',
+    created_time  datetime default CURRENT_TIMESTAMP     not null comment '创建时间',
+    updated_time  datetime default CURRENT_TIMESTAMP     not null on update CURRENT_TIMESTAMP comment '更新时间',
+    deleted_time  datetime default '2000-01-01 00:00:01' not null comment '删除时间',
+    is_deleted    tinyint  default 0                     not null comment '是否删除',
     constraint unique_fan_vloger_deleted_time
-        unique (fan_id, vloger_id,deleted_time)
+        unique (fan_id, vloger_id, deleted_time)
 )
     comment '粉丝表';
 

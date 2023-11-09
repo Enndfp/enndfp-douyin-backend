@@ -161,16 +161,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         // 2. 从 Redis 中查询个人信息页面关注，粉丝和获赞数
         int myFollowsCounts = getIntFromRedis(MY_FOLLOWS_COUNTS_KEY + userId);
         int myFansCounts = getIntFromRedis(MY_FANS_COUNTS_KEY + userId);
-        int likedVlogCounts = getIntFromRedis(VLOG_LIKE_COUNTS_KEY + userId);
         int likedVlogerCounts = getIntFromRedis(VLOGER_LIKE_COUNTS_KEY + userId);
 
-        // 3. 计算总获赞数（视频+评论）
-        int totalLikeMeCounts = likedVlogCounts + likedVlogerCounts;
-
-        // 4. 填充信息
+        // 3. 填充信息
         userVO.setMyFollowsCounts(myFollowsCounts);
         userVO.setMyFansCounts(myFansCounts);
-        userVO.setTotalLikeMeCounts(totalLikeMeCounts);
+        userVO.setTotalLikeMeCounts(likedVlogerCounts);
 
         return userVO;
     }

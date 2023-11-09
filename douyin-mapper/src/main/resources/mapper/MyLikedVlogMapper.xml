@@ -5,16 +5,18 @@
 <mapper namespace="com.enndfp.mapper.MyLikedVlogMapper">
 
     <resultMap id="BaseResultMap" type="com.enndfp.pojo.MyLikedVlog">
-            <id property="id" column="id" jdbcType="BIGINT"/>
-            <result property="userId" column="user_id" jdbcType="BIGINT"/>
-            <result property="vlogId" column="vlog_id" jdbcType="BIGINT"/>
-            <result property="createdTime" column="created_time" jdbcType="TIMESTAMP"/>
-            <result property="updatedTime" column="updated_time" jdbcType="TIMESTAMP"/>
-            <result property="isDeleted" column="is_deleted" jdbcType="TINYINT"/>
+        <id property="id" column="id" jdbcType="BIGINT"/>
+        <result property="userId" column="user_id" jdbcType="BIGINT"/>
+        <result property="vlogId" column="vlog_id" jdbcType="BIGINT"/>
+        <result property="createdTime" column="created_time" jdbcType="TIMESTAMP"/>
+        <result property="updatedTime" column="updated_time" jdbcType="TIMESTAMP"/>
+        <result property="deletedTime" column="deleted_time" jdbcType="TIMESTAMP"/>
+        <result property="isDeleted" column="is_deleted" jdbcType="TINYINT"/>
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,user_id,vlog_id,
-        created_time,updated_time,is_deleted
+        id
+        ,user_id,vlog_id,
+        created_time,updated_time,,deleted_time,is_deleted
     </sql>
 </mapper>

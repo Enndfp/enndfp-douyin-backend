@@ -74,6 +74,22 @@ public class VlogController {
     }
 
     /**
+     * 分页查询用户点赞过的短视频
+     *
+     * @param vlogQueryRequest
+     * @return
+     */
+    @GetMapping("/myLikedList")
+    public BaseResponse<Page<VlogVO>> myLikedList(@ModelAttribute VlogQueryRequest vlogQueryRequest) {
+        // 1. 校验请求参数
+        ThrowUtils.throwIf(vlogQueryRequest == null, ErrorCode.PARAMS_ERROR);
+        // 2. 处理分页查询逻辑
+        Page<VlogVO> vlogVOPage = vlogService.getMyLikedVlogList(vlogQueryRequest);
+
+        return ResultUtils.success(vlogVOPage);
+    }
+
+    /**
      * 从搜索页点击查看vlog详情
      *
      * @param userId
@@ -139,7 +155,7 @@ public class VlogController {
         // 1. 校验请求参数
         ThrowUtils.throwIf(vlogQueryRequest == null, ErrorCode.PARAMS_ERROR);
         // 2. 处理分页查询公开视频逻辑
-        Page<Vlog> vlogVOPage = vlogService.queryMyVlogList(vlogQueryRequest,YesOrNo.NO.type);
+        Page<Vlog> vlogVOPage = vlogService.queryMyVlogList(vlogQueryRequest, YesOrNo.NO.type);
 
         return ResultUtils.success(vlogVOPage);
     }
@@ -155,10 +171,68 @@ public class VlogController {
         // 1. 校验请求参数
         ThrowUtils.throwIf(vlogQueryRequest == null, ErrorCode.PARAMS_ERROR);
         // 2. 处理分页查询私密视频逻辑
-        Page<Vlog> vlogVOPage = vlogService.queryMyVlogList(vlogQueryRequest,YesOrNo.YES.type);
+        Page<Vlog> vlogVOPage = vlogService.queryMyVlogList(vlogQueryRequest, YesOrNo.YES.type);
 
         return ResultUtils.success(vlogVOPage);
     }
 
+    /**
+     * 用户点赞/喜欢视频
+     *
+     * @param userId
+     * @param vlogerId
+     * @param vlogId
+     * @return
+     */
+    @PostMapping("/like")
+    public BaseResponse<?> like(@RequestParam Long userId,
+                                @RequestParam Long vlogerId,
+                                @RequestParam Long vlogId) {
+        // 1. 校验请求参数
+        ThrowUtils.throwIf(userId == null, ErrorCode.PARAMS_ERROR);
+        ThrowUtils.throwIf(vlogerId == null, ErrorCode.PARAMS_ERROR);
+        ThrowUtils.throwIf(vlogId == null, ErrorCode.PARAMS_ERROR);
+        // 2. 处理点赞逻辑
+        vlogService.userLikeVlog(userId, vlogerId, vlogId);
+
+        return ResultUtils.success();
+    }
+
+    /**
+     * 用户取消点赞视频
+     *
+     * @param userId
+     * @param vlogerId
+     * @param vlogId
+     * @return
+     */
+    @PostMapping("/unlike")
+    public BaseResponse<?> unlike(@RequestParam Long userId,
+                                  @RequestParam Long vlogerId,
+                                  @RequestParam Long vlogId) {
+        // 1. 校验请求参数
+        ThrowUtils.throwIf(userId == null, ErrorCode.PARAMS_ERROR);
+        ThrowUtils.throwIf(vlogerId == null, ErrorCode.PARAMS_ERROR);
+        ThrowUtils.throwIf(vlogId == null, ErrorCode.PARAMS_ERROR);
+        // 2. 处理点赞逻辑
+        vlogService.userUnLikeVlog(userId, vlogerId, vlogId);
+
+        return ResultUtils.success();
+    }
+
+    /**
+     * 获得用户点赞视频的总数
+     *
+     * @param vlogId
+     * @return
+     */
+    @PostMapping("/totalLikedCounts")
+    public BaseResponse<Integer> totalLikedCounts(@RequestParam Long vlogId) {
+        // 1. 校验请求参数
+        ThrowUtils.throwIf(vlogId == null, ErrorCode.PARAMS_ERROR);
+
+        // 2. 处理查询点赞总数逻辑
+        return ResultUtils.success(vlogService.getVlogBeLikedCounts(vlogId));
+    }
 
 }

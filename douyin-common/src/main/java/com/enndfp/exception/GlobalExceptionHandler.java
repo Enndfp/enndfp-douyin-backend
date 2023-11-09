@@ -4,6 +4,7 @@ import com.enndfp.common.BaseResponse;
 import com.enndfp.common.ErrorCode;
 import com.enndfp.utils.ResultUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -60,6 +61,18 @@ public class GlobalExceptionHandler {
     public BaseResponse<?> maxUploadSizeExceededExceptionHandler(MaxUploadSizeExceededException e) {
         log.error("maxUploadSizeExceededException: ", e);
         return ResultUtils.error(ErrorCode.FILE_MAX_SIZE_2MB_ERROR);
+    }
+
+    /**
+     * 唯一约束异常捕获
+     *
+     * @param e
+     * @return
+     */
+    @ExceptionHandler(DuplicateKeyException.class)
+    public BaseResponse<?> duplicateKeyExceptionHandler(DuplicateKeyException e) {
+        log.error("duplicateKeyException: ", e);
+        return ResultUtils.error(ErrorCode.ALREADY_FOLLOW);
     }
 
     /**

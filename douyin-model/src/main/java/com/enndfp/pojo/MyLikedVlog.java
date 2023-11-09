@@ -40,9 +40,14 @@ public class MyLikedVlog implements Serializable {
     private Date updatedTime;
 
     /**
+     * 删除时间
+     */
+    private Date deletedTime;
+
+    /**
      * 是否删除
      */
-    @TableLogic
+    @TableLogic(value = "0", delval = "1,deleted_time = now()")
     private Integer isDeleted;
 
     @TableField(exist = false)

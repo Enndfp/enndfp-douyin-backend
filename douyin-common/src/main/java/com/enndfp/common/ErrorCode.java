@@ -8,7 +8,6 @@ package com.enndfp.common;
 public enum ErrorCode {
     FAILED(500, "操作失败！"),
 
-
     PARAMS_ERROR(501, "请求参数错误！"),
     PHONE_IS_NULL(502, "手机号为空！"),
     PHONE_ILLEGALITY(503, "手机号不合法！"),
@@ -28,6 +27,9 @@ public enum ErrorCode {
     NOT_ALLOWED_FOLLOW_YOURSELF(517, "不允许关注自己！"),
     CANCEL_FOLLOW_FAILED(518, "取消关注失败，请稍后再试！"),
     NOT_FOLLOW(519, "您未关注对方！"),
+    ALREADY_FOLLOW(520, "您已关注对方！"),
+    LIKE_FAILED(521, "点赞失败！"),
+    UNLIKE_FAILED(522, "取消点赞失败！"),
 
 
 

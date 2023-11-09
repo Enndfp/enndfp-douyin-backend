@@ -59,4 +59,6 @@ public interface FansService extends IService<Fans> {
     Page<FansVO> queryMyFans(Long vlogerId, Integer current, Integer pageSize);
 
 
+
+
 }

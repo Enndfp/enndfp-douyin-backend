@@ -18,6 +18,8 @@ public interface VlogMapper extends BaseMapper<Vlog> {
 
     VlogVO getVlogDetailById(@Param("paramMap") Map<String, Object> map);
 
+    Page<VlogVO> getMyLikedVlogList(Page<VlogVO> page, @Param("paramMap") Map<String, Object> map);
+
 }
 
 
