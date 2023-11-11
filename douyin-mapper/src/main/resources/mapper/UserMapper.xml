@@ -17,7 +17,7 @@
         JOIN
             vlog v
         ON
-            u.id = v.vlog_user_id
+            u.id = v.vloger_id
         AND
             v.id = #{vlogId};
     </select>

@@ -32,7 +32,7 @@ public class Comment implements Serializable {
     /**
      * 视频作者id
      */
-    private Long vlogUserId;
+    private Long vlogerId;
 
     /**
      * 如果是回复留言，则本条为子留言，需要关联查询

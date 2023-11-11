@@ -33,7 +33,7 @@ create table user
 create table vlog
 (
     id              bigint auto_increment comment 'id' primary key,
-    vlog_user_id    bigint                                 not null comment 'vlog视频发布者',
+    vloger_id       bigint                                 not null comment 'vlog视频发布者',
     url             varchar(1024)                          not null comment '视频播放地址',
     cover           varchar(1024)                          not null comment '视频封面',
     title           varchar(256) default NULL              null comment '视频标题',
@@ -82,7 +82,7 @@ create table comment
     id                bigint auto_increment comment 'id' primary key,
     comment_user_id   bigint                             not null comment '发布留言用户id',
     vlog_id           bigint                             not null comment '视频id',
-    vlog_user_id      bigint                             not null comment '视频作者id',
+    vloger_id         bigint                             not null comment '视频作者id',
     father_comment_id bigint                             not null comment '如果是回复留言，则本条为子留言，需要关联查询',
     content           varchar(256)                       not null comment '留言内容',
     like_counts       int      default 0                 not null comment '留言的点赞总数',

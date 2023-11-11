@@ -8,7 +8,7 @@
             <id property="id" column="id" jdbcType="BIGINT"/>
             <result property="commentUserId" column="comment_user_id" jdbcType="BIGINT"/>
             <result property="vlogId" column="vlog_id" jdbcType="BIGINT"/>
-            <result property="vlogUserId" column="vlog_user_id" jdbcType="BIGINT"/>
+            <result property="vlogerId" column="vloger_id" jdbcType="BIGINT"/>
             <result property="fatherCommentId" column="father_comment_id" jdbcType="BIGINT"/>
             <result property="content" column="content" jdbcType="VARCHAR"/>
             <result property="likeCounts" column="like_counts" jdbcType="INTEGER"/>
@@ -19,7 +19,7 @@
 
     <sql id="Base_Column_List">
         id,comment_user_id,vlog_id,
-        vlog_user_id,father_comment_id,content,
+        vloger_id,father_comment_id,content,
         like_counts,created_time,updated_time,
         is_deleted
     </sql>

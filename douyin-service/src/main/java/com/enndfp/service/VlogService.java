@@ -28,6 +28,22 @@ public interface VlogService extends IService<Vlog> {
     Page<VlogVO> getIndexVlogList(VlogQueryRequest vlogQueryRequest);
 
     /**
+     * 分页查询用户关注的博主发布的短视频
+     *
+     * @param vlogQueryRequest
+     * @return
+     */
+    Page<VlogVO> getMyFollowVlogList(VlogQueryRequest vlogQueryRequest);
+
+    /**
+     * 分页查询用户朋友发布的短视频
+     *
+     * @param vlogQueryRequest
+     * @return
+     */
+    Page<VlogVO> getMyFriendVlogList(VlogQueryRequest vlogQueryRequest);
+
+    /**
      * 分页查询用户点赞过的短视频
      *
      * @param vlogQueryRequest
@@ -60,7 +76,7 @@ public interface VlogService extends IService<Vlog> {
      * @param yesOrNo
      * @return
      */
-    Page<Vlog> queryMyVlogList(VlogQueryRequest vlogQueryRequest, Integer yesOrNo);
+    Page<VlogVO> queryMyVlogList(VlogQueryRequest vlogQueryRequest, Integer yesOrNo);
 
     /**
      * 用户点赞视频

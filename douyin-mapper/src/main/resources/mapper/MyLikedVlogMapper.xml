@@ -17,6 +17,6 @@
     <sql id="Base_Column_List">
         id
         ,user_id,vlog_id,
-        created_time,updated_time,,deleted_time,is_deleted
+        created_time,updated_time,deleted_time,is_deleted
     </sql>
 </mapper>

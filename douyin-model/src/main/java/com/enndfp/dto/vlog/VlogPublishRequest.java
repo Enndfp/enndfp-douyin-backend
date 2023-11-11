@@ -12,7 +12,7 @@ import java.io.Serializable;
 @Data
 public class VlogPublishRequest implements Serializable {
 
-    private Long vlogUserId;
+    private Long vlogerId;
 
     private String url;
 

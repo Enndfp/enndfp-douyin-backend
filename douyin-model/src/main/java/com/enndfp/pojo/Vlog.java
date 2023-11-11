@@ -22,7 +22,7 @@ public class Vlog implements Serializable {
     /**
      * vlog视频发布者
      */
-    private Long vlogUserId;
+    private Long vlogerId;
 
     /**
      * 视频播放地址

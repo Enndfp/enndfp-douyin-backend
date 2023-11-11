@@ -11,6 +11,7 @@ import java.io.Serializable;
  */
 @Data
 public class VlogVO implements Serializable {
+
     /**
      * id
      */

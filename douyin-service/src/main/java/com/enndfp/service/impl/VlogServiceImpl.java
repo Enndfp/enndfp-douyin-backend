@@ -12,6 +12,7 @@ import com.enndfp.mapper.VlogMapper;
 import com.enndfp.pojo.MyLikedVlog;
 import com.enndfp.pojo.User;
 import com.enndfp.pojo.Vlog;
+import com.enndfp.service.FansService;
 import com.enndfp.service.UserService;
 import com.enndfp.service.VlogService;
 import com.enndfp.utils.RedisIdWorker;
@@ -49,6 +50,8 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog>
     private UserService userService;
     @Resource
     private RedisUtils redisUtils;
+    @Resource
+    private FansService fansService;
 
     @Override
     public void publish(VlogPublishRequest vlogPublishRequest) {
@@ -67,7 +70,6 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog>
         String search = vlogQueryRequest.getSearch();
         Integer current = vlogQueryRequest.getCurrent();
         Integer pageSize = vlogQueryRequest.getPageSize();
-        ThrowUtils.throwIf(userId == null, ErrorCode.PARAMS_ERROR);
 
         // 1. 构造分页器
         if (current == null) current = DEFAULT_CURRENT;
@@ -85,18 +87,65 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog>
         // 3.1 得到具体数据
         List<VlogVO> vlogVOList = indexVlogList.getRecords();
         for (VlogVO vlogVO : vlogVOList) {
-            Long vlogerId = vlogVO.getVlogerId();
-            Long vlogId = vlogVO.getVlogId();
-
-            // 3.2 判断当前用户是否点赞过视频
-            vlogVO.setDoILikeThisVlog(doILikeVlog(userId, vlogId));
-            // 3.3 获得当前视频被点赞过的总数
-            vlogVO.setLikeCounts(this.getVlogBeLikedCounts(vlogId));
-            // 3.3 判断用户是否关注该博主
-
+            // 3.2 处理 VlogVO 中的一些后置参数
+            this.handlerVlogVO(vlogVO, userId);
         }
 
         return indexVlogList;
+    }
+
+    @Override
+    public Page<VlogVO> getMyFollowVlogList(VlogQueryRequest vlogQueryRequest) {
+        Long userId = vlogQueryRequest.getUserId();
+        Integer current = vlogQueryRequest.getCurrent();
+        Integer pageSize = vlogQueryRequest.getPageSize();
+
+        // 1. 构造分页器
+        if (current == null) current = DEFAULT_CURRENT;
+        if (pageSize == null) pageSize = DEFAULT_PAGE_SIZE;
+        Page<VlogVO> page = new Page<>(current, pageSize);
+
+        // 2. 封装查询参数
+        Map<String, Object> map = new HashMap<>();
+        map.put("fanId", userId);
+
+        // 3. 处理后置参数
+        Page<VlogVO> myFollowVlogList = vlogMapper.getMyFollowVlogList(page, map);
+        // 3.1 得到具体数据
+        List<VlogVO> vlogVOList = myFollowVlogList.getRecords();
+        for (VlogVO vlogVO : vlogVOList) {
+            // 3.2 处理 VlogVO 中的一些后置参数
+            this.handlerVlogVO(vlogVO, userId);
+        }
+
+        return myFollowVlogList;
+    }
+
+    @Override
+    public Page<VlogVO> getMyFriendVlogList(VlogQueryRequest vlogQueryRequest) {
+        Long userId = vlogQueryRequest.getUserId();
+        Integer current = vlogQueryRequest.getCurrent();
+        Integer pageSize = vlogQueryRequest.getPageSize();
+
+        // 1. 构造分页器
+        if (current == null) current = DEFAULT_CURRENT;
+        if (pageSize == null) pageSize = DEFAULT_PAGE_SIZE;
+        Page<VlogVO> page = new Page<>(current, pageSize);
+
+        // 2. 封装查询参数
+        Map<String, Object> map = new HashMap<>();
+        map.put("vlogerId", userId);
+
+        // 3. 处理后置参数
+        Page<VlogVO> myFriendVlogList = vlogMapper.getMyFriendVlogList(page, map);
+        // 3.1 得到具体数据
+        List<VlogVO> vlogVOList = myFriendVlogList.getRecords();
+        for (VlogVO vlogVO : vlogVOList) {
+            // 3.2 处理 VlogVO 中的一些后置参数
+            this.handlerVlogVO(vlogVO, userId);
+        }
+
+        return myFriendVlogList;
     }
 
     @Override
@@ -129,6 +178,10 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog>
 
         // 3. 判断是否存在视频
         ThrowUtils.throwIf(vlogVO == null, ErrorCode.VLOG_IS_NOT_EXIST);
+
+        // 4. 处理 VlogVO 中的一些后置参数
+        this.handlerVlogVO(vlogVO, userId);
+
         return vlogVO;
     }
 
@@ -138,7 +191,7 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog>
         // 1. 构造条件查询器
         LambdaQueryWrapper<Vlog> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Vlog::getId, vlogId);
-        queryWrapper.eq(Vlog::getVlogUserId, userId);
+        queryWrapper.eq(Vlog::getVlogerId, userId);
 
         // 2. 创建待执行的vlog对象
         Vlog vlog = new Vlog();
@@ -148,7 +201,7 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog>
     }
 
     @Override
-    public Page<Vlog> queryMyVlogList(VlogQueryRequest vlogQueryRequest, Integer yesOrNo) {
+    public Page<VlogVO> queryMyVlogList(VlogQueryRequest vlogQueryRequest, Integer yesOrNo) {
         Long userId = vlogQueryRequest.getUserId();
         Integer current = vlogQueryRequest.getCurrent();
         Integer pageSize = vlogQueryRequest.getPageSize();
@@ -159,14 +212,14 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog>
         // 2. 构造分页器
         if (current == null) current = DEFAULT_CURRENT;
         if (pageSize == null) pageSize = DEFAULT_PAGE_SIZE;
-        Page<Vlog> page = new Page<>(current, pageSize);
+        Page<VlogVO> page = new Page<>(current, pageSize);
 
         // 3. 构造查询条件
-        LambdaQueryWrapper<Vlog> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Vlog::getVlogUserId, userId);
-        queryWrapper.eq(Vlog::getIsPrivate, yesOrNo);
+        Map<String, Object> map = new HashMap<>();
+        map.put("vlogerId", userId);
+        map.put("isPrivate", yesOrNo);
 
-        return vlogMapper.selectPage(page, queryWrapper);
+        return vlogMapper.queryMyVlogList(page, map);
     }
 
     @Transactional
@@ -238,6 +291,30 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog>
     private boolean doILikeVlog(Long userId, Long vlogId) {
         String doILike = redisUtils.get(USER_LIKE_VLOG + userId + ":" + vlogId);
         return StringUtils.isNotBlank(doILike);
+    }
+
+    /**
+     * 处理 VlogVO 中的一些后置参数
+     *
+     * @param vlogVO
+     * @param userId
+     * @return
+     */
+    private VlogVO handlerVlogVO(VlogVO vlogVO, Long userId) {
+        // 1. 获取具体字段值
+        Long vlogerId = vlogVO.getVlogerId();
+        Long vlogId = vlogVO.getVlogId();
+
+        if (userId != null) {
+            // 2. 判断当前用户是否点赞过视频
+            vlogVO.setDoILikeThisVlog(doILikeVlog(userId, vlogId));
+            // 3. 判断用户是否关注该博主
+            vlogVO.setDoIFollowVloger(fansService.queryDoIFollowVloger(userId, vlogerId));
+        }
+        // 4. 获得当前视频被点赞过的总数
+        vlogVO.setLikeCounts(this.getVlogBeLikedCounts(vlogId));
+
+        return vlogVO;
     }
 }
 

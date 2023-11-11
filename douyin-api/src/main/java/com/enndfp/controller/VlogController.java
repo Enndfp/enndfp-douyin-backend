@@ -38,13 +38,13 @@ public class VlogController {
     public BaseResponse<?> publish(@RequestBody VlogPublishRequest vlogPublishRequest) {
         // 1. 校验请求参数
         ThrowUtils.throwIf(vlogPublishRequest == null, ErrorCode.PARAMS_ERROR);
-        Long vlogUserId = vlogPublishRequest.getVlogUserId();
+        Long vlogerId = vlogPublishRequest.getVlogerId();
         String url = vlogPublishRequest.getUrl();
         String cover = vlogPublishRequest.getCover();
         String title = vlogPublishRequest.getTitle();
         Integer width = vlogPublishRequest.getWidth();
         Integer height = vlogPublishRequest.getHeight();
-        ThrowUtils.throwIf(vlogUserId == null, ErrorCode.VLOG_PARAMS_ERROR);
+        ThrowUtils.throwIf(vlogerId == null, ErrorCode.VLOG_PARAMS_ERROR);
         ThrowUtils.throwIf(StringUtils.isBlank(url), ErrorCode.VLOG_PARAMS_ERROR);
         ThrowUtils.throwIf(StringUtils.isBlank(cover), ErrorCode.VLOG_PARAMS_ERROR);
         ThrowUtils.throwIf(StringUtils.isBlank(title), ErrorCode.VLOG_PARAMS_ERROR);
@@ -69,6 +69,38 @@ public class VlogController {
         ThrowUtils.throwIf(vlogQueryRequest == null, ErrorCode.PARAMS_ERROR);
         // 2. 处理分页查询逻辑
         Page<VlogVO> vlogVOPage = vlogService.getIndexVlogList(vlogQueryRequest);
+
+        return ResultUtils.success(vlogVOPage);
+    }
+
+    /**
+     * 分页查询用户关注的博主发布的短视频
+     *
+     * @param vlogQueryRequest
+     * @return
+     */
+    @GetMapping("/followList")
+    public BaseResponse<Page<VlogVO>> followList(@ModelAttribute VlogQueryRequest vlogQueryRequest) {
+        // 1. 校验请求参数
+        ThrowUtils.throwIf(vlogQueryRequest == null, ErrorCode.PARAMS_ERROR);
+        // 2. 处理分页查询逻辑
+        Page<VlogVO> vlogVOPage = vlogService.getMyFollowVlogList(vlogQueryRequest);
+
+        return ResultUtils.success(vlogVOPage);
+    }
+
+    /**
+     * 分页查询用户朋友发布的短视频
+     *
+     * @param vlogQueryRequest
+     * @return
+     */
+    @GetMapping("/friendList")
+    public BaseResponse<Page<VlogVO>> friendList(@ModelAttribute VlogQueryRequest vlogQueryRequest) {
+        // 1. 校验请求参数
+        ThrowUtils.throwIf(vlogQueryRequest == null, ErrorCode.PARAMS_ERROR);
+        // 2. 处理分页查询逻辑
+        Page<VlogVO> vlogVOPage = vlogService.getMyFriendVlogList(vlogQueryRequest);
 
         return ResultUtils.success(vlogVOPage);
     }
@@ -151,11 +183,11 @@ public class VlogController {
      * @return
      */
     @GetMapping("/myPublicList")
-    public BaseResponse<Page<Vlog>> myPublicList(@ModelAttribute VlogQueryRequest vlogQueryRequest) {
+    public BaseResponse<Page<VlogVO>> myPublicList(@ModelAttribute VlogQueryRequest vlogQueryRequest) {
         // 1. 校验请求参数
         ThrowUtils.throwIf(vlogQueryRequest == null, ErrorCode.PARAMS_ERROR);
         // 2. 处理分页查询公开视频逻辑
-        Page<Vlog> vlogVOPage = vlogService.queryMyVlogList(vlogQueryRequest, YesOrNo.NO.type);
+        Page<VlogVO> vlogVOPage = vlogService.queryMyVlogList(vlogQueryRequest, YesOrNo.NO.type);
 
         return ResultUtils.success(vlogVOPage);
     }
@@ -167,11 +199,11 @@ public class VlogController {
      * @return
      */
     @GetMapping("/myPrivateList")
-    public BaseResponse<Page<Vlog>> myPrivateList(@ModelAttribute VlogQueryRequest vlogQueryRequest) {
+    public BaseResponse<Page<VlogVO>> myPrivateList(@ModelAttribute VlogQueryRequest vlogQueryRequest) {
         // 1. 校验请求参数
         ThrowUtils.throwIf(vlogQueryRequest == null, ErrorCode.PARAMS_ERROR);
         // 2. 处理分页查询私密视频逻辑
-        Page<Vlog> vlogVOPage = vlogService.queryMyVlogList(vlogQueryRequest, YesOrNo.YES.type);
+        Page<VlogVO> vlogVOPage = vlogService.queryMyVlogList(vlogQueryRequest, YesOrNo.YES.type);
 
         return ResultUtils.success(vlogVOPage);
     }
