@@ -11,6 +11,8 @@ import com.enndfp.utils.ResultUtils;
 import com.enndfp.utils.ThrowUtils;
 import com.enndfp.vo.FansVO;
 import com.enndfp.vo.VlogerVO;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +27,7 @@ import static com.enndfp.constant.RedisConstants.FANS_AND_VLOGER_RELATIONSHIP_KE
  * @author Enndfp
  */
 @Slf4j
+@Api(tags = "粉丝功能接口")
 @RestController
 @RequestMapping("/fans")
 public class FansController {
@@ -36,6 +39,14 @@ public class FansController {
     @Resource
     private RedisUtils redisUtils;
 
+    /**
+     * 关注博主
+     *
+     * @param fanId
+     * @param vlogerId
+     * @return
+     */
+    @ApiOperation(value = "关注博主")
     @PostMapping("/follow")
     public BaseResponse<?> follow(@RequestParam Long fanId,
                                   @RequestParam Long vlogerId) {
@@ -57,6 +68,14 @@ public class FansController {
         return ResultUtils.success();
     }
 
+    /**
+     * 取消关注
+     *
+     * @param fanId
+     * @param vlogerId
+     * @return
+     */
+    @ApiOperation(value = "取消关注")
     @PostMapping("/cancel")
     public BaseResponse<?> cancel(@RequestParam Long fanId,
                                   @RequestParam Long vlogerId) {
@@ -75,6 +94,14 @@ public class FansController {
         return ResultUtils.success();
     }
 
+    /**
+     * 查询自己是否关注博主
+     *
+     * @param fanId
+     * @param vlogerId
+     * @return
+     */
+    @ApiOperation(value = "查询自己是否关注博主")
     @GetMapping("/queryDoIFollowVloger")
     public BaseResponse<Boolean> queryDoIFollowVloger(@RequestParam Long fanId,
                                                       @RequestParam Long vlogerId) {
@@ -92,6 +119,15 @@ public class FansController {
         return ResultUtils.success(fansService.queryDoIFollowVloger(fanId, vlogerId));
     }
 
+    /**
+     * 分页查询关注的博主
+     *
+     * @param fanId
+     * @param current
+     * @param pageSize
+     * @return
+     */
+    @ApiOperation(value = "分页查询关注的博主")
     @GetMapping("/queryMyFollows")
     public BaseResponse<Page<VlogerVO>> queryMyFollows(@RequestParam Long fanId,
                                                        @RequestParam Integer current,
@@ -104,6 +140,15 @@ public class FansController {
         return ResultUtils.success(vlogerVOPage);
     }
 
+    /**
+     * 分页查询自己的粉丝
+     *
+     * @param vlogerId
+     * @param current
+     * @param pageSize
+     * @return
+     */
+    @ApiOperation(value = "分页查询自己的粉丝")
     @GetMapping("/queryMyFans")
     public BaseResponse<Page<FansVO>> queryMyFans(@RequestParam Long vlogerId,
                                                   @RequestParam Integer current,

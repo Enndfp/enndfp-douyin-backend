@@ -3,7 +3,7 @@ package com.enndfp.vo;
 import lombok.Data;
 
 /**
- * 我的粉丝视图
+ * 粉丝视图
  *
  * @author Enndfp
  */

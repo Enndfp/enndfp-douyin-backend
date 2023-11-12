@@ -61,7 +61,8 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog>
         vlog.setId(id);
 
         // 2. 保存视频
-        vlogMapper.insert(vlog);
+        int result = vlogMapper.insert(vlog);
+        ThrowUtils.throwIf(result != 1, ErrorCode.VLOG_PUBLISH_FAILED);
     }
 
     @Override
@@ -187,7 +188,7 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog>
 
     @Transactional
     @Override
-    public void changeToPrivateOrPublic(Long userId, Long vlogId, Integer yesOrNo) {
+    public void changePrivacy(Long userId, Long vlogId, Integer isPrivate) {
         // 1. 构造条件查询器
         LambdaQueryWrapper<Vlog> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Vlog::getId, vlogId);
@@ -195,7 +196,7 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog>
 
         // 2. 创建待执行的vlog对象
         Vlog vlog = new Vlog();
-        vlog.setIsPrivate(yesOrNo);
+        vlog.setIsPrivate(isPrivate);
 
         vlogMapper.update(vlog, queryWrapper);
     }
@@ -226,10 +227,7 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog>
     @Override
     public void userLikeVlog(Long userId, Long vlogerId, Long vlogId) {
         // 1. 判断用户、博主和视频是否存在
-        List<User> users = userService.listByIds(Arrays.asList(userId, vlogerId));
-        for (User user : users) {
-            ThrowUtils.throwIf(user == null, ErrorCode.USER_NOT_EXIST);
-        }
+        userService.checkUserExist(Arrays.asList(userId, vlogerId));
         Vlog vlog = vlogMapper.selectById(vlogId);
         ThrowUtils.throwIf(vlog == null, ErrorCode.VLOG_IS_NOT_EXIST);
 

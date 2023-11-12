@@ -11,6 +11,8 @@ import com.enndfp.utils.MinIOUtils;
 import com.enndfp.utils.ResultUtils;
 import com.enndfp.utils.ThrowUtils;
 import com.enndfp.vo.UserVO;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 
 @Slf4j
+@Api(tags = "文件功能接口")
 @RestController
 @RequestMapping("/file")
 public class FileController {
@@ -35,6 +38,7 @@ public class FileController {
      * @param file
      * @return
      */
+    @ApiOperation(value = "上传头像和背景图")
     @PostMapping("/upload")
     public BaseResponse<UserVO> upload(@ModelAttribute UserUploadRequest userUploadRequest, MultipartFile file) {
         Long userId = userUploadRequest.getUserId();

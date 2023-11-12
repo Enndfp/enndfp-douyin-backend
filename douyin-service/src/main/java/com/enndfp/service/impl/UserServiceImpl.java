@@ -29,7 +29,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.enndfp.constant.RedisConstants.*;
@@ -238,6 +240,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         User user = userMapper.queryUserByVlogId(vlogId);
         ThrowUtils.throwIf(user == null, ErrorCode.USER_NOT_EXIST);
         return BeanUtil.copyProperties(user, UserVO.class);
+    }
+
+    @Override
+    public void checkUserExist(List<Long> ids) {
+        List<User> users = this.listByIds(ids);
+        for (User user : users) {
+            ThrowUtils.throwIf(user == null, ErrorCode.USER_NOT_EXIST);
+        }
     }
 
     private int getIntFromRedis(String key) {

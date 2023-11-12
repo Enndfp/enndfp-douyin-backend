@@ -9,6 +9,7 @@ import com.enndfp.vo.UserVO;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * @author Enndfp
@@ -87,5 +88,12 @@ public interface UserService extends IService<User> {
      * @return
      */
     UserVO queryUserByVlogId(Long vlogId);
+
+    /**
+     * 校验用户是否真实存在
+     *
+     * @param ids
+     */
+    void checkUserExist(List<Long> ids);
 
 }

@@ -65,9 +65,9 @@ public interface VlogService extends IService<Vlog> {
      *
      * @param userId
      * @param vlogId
-     * @param yesOrNo
+     * @param isPrivate
      */
-    void changeToPrivateOrPublic(Long userId, Long vlogId, Integer yesOrNo);
+    void changePrivacy(Long userId, Long vlogId, Integer isPrivate);
 
     /**
      * 分页查询公开/私密的视频列表
