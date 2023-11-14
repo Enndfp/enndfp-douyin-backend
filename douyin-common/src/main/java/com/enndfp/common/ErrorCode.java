@@ -33,6 +33,8 @@ public enum ErrorCode {
     UNLIKE_FAILED(523, "取消点赞失败！"),
     COMMENT_PUBLISH_FAILED(524, "评论发布失败！"),
     COMMENT_IS_NOT_EXIST(525, "该评论不存在，请重试！"),
+    ALREADY_LIKE(526, "已点赞！"),
+    UN_LIKE(527, "未点赞！"),
 
 
 

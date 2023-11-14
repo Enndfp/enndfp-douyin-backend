@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.enndfp.dto.comment.CommentDeleteRequest;
 import com.enndfp.dto.comment.CommentPublishRequest;
 import com.enndfp.dto.comment.CommentQueryRequest;
+import com.enndfp.dto.comment.CommentUpdateRequest;
 import com.enndfp.pojo.Comment;
 import com.enndfp.vo.CommentVO;
 
@@ -43,4 +44,18 @@ public interface CommentService extends IService<Comment> {
      * @param commentDeleteRequest
      */
     void delete(CommentDeleteRequest commentDeleteRequest);
+
+    /**
+     * 点赞
+     *
+     * @param commentUpdateRequest
+     */
+    void like(CommentUpdateRequest commentUpdateRequest);
+
+    /**
+     * 取消点赞
+     *
+     * @param commentUpdateRequest
+     */
+    void unlike(CommentUpdateRequest commentUpdateRequest);
 }

@@ -6,6 +6,7 @@ import com.enndfp.common.ErrorCode;
 import com.enndfp.dto.comment.CommentDeleteRequest;
 import com.enndfp.dto.comment.CommentPublishRequest;
 import com.enndfp.dto.comment.CommentQueryRequest;
+import com.enndfp.dto.comment.CommentUpdateRequest;
 import com.enndfp.dto.vlog.VlogQueryRequest;
 import com.enndfp.enums.YesOrNo;
 import com.enndfp.service.CommentService;
@@ -97,6 +98,38 @@ public class CommentController {
         ThrowUtils.throwIf(commentDeleteRequest == null, ErrorCode.PARAMS_ERROR);
         // 2. 处理分页查询评论列表逻辑
         commentService.delete(commentDeleteRequest);
+
+        return ResultUtils.success();
+    }
+
+    /**
+     * 点赞
+     * @param commentUpdateRequest
+     * @return
+     */
+    @ApiOperation(value = "点赞")
+    @PostMapping("/like")
+    public BaseResponse<?> like(@ModelAttribute CommentUpdateRequest commentUpdateRequest) {
+        // 1. 校验请求参数
+        ThrowUtils.throwIf(commentUpdateRequest == null, ErrorCode.PARAMS_ERROR);
+        // 2. 处理点赞逻辑
+        commentService.like(commentUpdateRequest);
+
+        return ResultUtils.success();
+    }
+
+    /**
+     * 取消点赞
+     * @param commentUpdateRequest
+     * @return
+     */
+    @ApiOperation(value = "取消点赞")
+    @PostMapping("/unlike")
+    public BaseResponse<?> unlike(@ModelAttribute CommentUpdateRequest commentUpdateRequest) {
+        // 1. 校验请求参数
+        ThrowUtils.throwIf(commentUpdateRequest == null, ErrorCode.PARAMS_ERROR);
+        // 2. 处理取消点赞逻辑
+        commentService.unlike(commentUpdateRequest);
 
         return ResultUtils.success();
     }

@@ -1,16 +1,21 @@
 package com.enndfp.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.util.NumberUtil;
+import cn.hutool.core.util.BooleanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.enndfp.common.ErrorCode;
 import com.enndfp.dto.comment.CommentDeleteRequest;
 import com.enndfp.dto.comment.CommentPublishRequest;
 import com.enndfp.dto.comment.CommentQueryRequest;
+import com.enndfp.dto.comment.CommentUpdateRequest;
+import com.enndfp.enums.YesOrNo;
 import com.enndfp.mapper.CommentMapper;
+import com.enndfp.mapper.VlogMapper;
 import com.enndfp.pojo.Comment;
+import com.enndfp.pojo.Vlog;
 import com.enndfp.service.CommentService;
 import com.enndfp.service.UserService;
 import com.enndfp.utils.RedisIdWorker;
@@ -19,13 +24,15 @@ import com.enndfp.utils.ThrowUtils;
 import com.enndfp.vo.CommentVO;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import static com.enndfp.constant.RedisConstants.VLOG_COMMENT_COUNTS;
+import static com.enndfp.constant.RedisConstants.*;
 import static com.enndfp.constant.VlogConstants.DEFAULT_CURRENT;
 import static com.enndfp.constant.VlogConstants.DEFAULT_PAGE_SIZE;
 
@@ -44,6 +51,8 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment>
     private RedisUtils redisUtils;
     @Resource
     private UserService userService;
+    @Resource
+    private VlogMapper vlogMapper;
 
     @Override
     public CommentVO publish(CommentPublishRequest commentPublishRequest) {
@@ -108,7 +117,18 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment>
         Map<String, Object> map = new HashMap<>();
         map.put("vlogId", vlogId);
 
-        return commentMapper.getCommentList(page, map);
+        // 4. 处理后置参数
+        Page<CommentVO> commentVOPage = commentMapper.getCommentList(page, map);
+        // 4.1 得到具体数据
+        List<CommentVO> commentVOList = commentVOPage.getRecords();
+        for (CommentVO commentVO : commentVOList) {
+            // 4.2 判断用户是否点赞该评论
+            Long commentId = commentVO.getCommentId();
+            Boolean isMember = redisUtils.isMember(COMMENT_LIKED + commentId, userId.toString());
+            if (isMember) commentVO.setIsLike(YesOrNo.YES.type);
+        }
+
+        return commentVOPage;
     }
 
     @Override
@@ -133,6 +153,77 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment>
 
         // 4. 修改 Redis 中评论的总数
         redisUtils.decrement(VLOG_COMMENT_COUNTS + vlogId, 1);
+    }
+
+    @Transactional
+    @Override
+    public void like(CommentUpdateRequest commentUpdateRequest) {
+        // TODO 点赞优化，可以异步更新数据库 消息队列
+        Long userId = commentUpdateRequest.getUserId();
+        Long commentId = commentUpdateRequest.getCommentId();
+        Long vlogId = commentUpdateRequest.getVlogId();
+        if(userId == null || commentId == null || vlogId == null){
+            ThrowUtils.throwException(ErrorCode.PARAMS_ERROR);
+        }
+
+        // 1. 判断当前登录用户是否已经点赞
+        Boolean isMember = redisUtils.isMember(COMMENT_LIKED + commentId, userId.toString());
+        ThrowUtils.throwIf(BooleanUtil.isTrue(isMember), ErrorCode.ALREADY_LIKE);
+
+        // 2. 数据库点赞数 +1
+        LambdaUpdateWrapper<Comment> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(Comment::getId, commentId);
+        updateWrapper.setSql("like_counts = like_counts + 1");
+        int result = commentMapper.update(null, updateWrapper);
+        ThrowUtils.throwIf(result != 1, ErrorCode.LIKE_FAILED);
+
+        // 3. vlog 中的评论总数 +1
+        LambdaUpdateWrapper<Vlog> updateWrapper2 = new LambdaUpdateWrapper<>();
+        updateWrapper2.eq(Vlog::getId, vlogId);
+        updateWrapper2.setSql("comments_counts = comments_counts + 1");
+        int result2 = vlogMapper.update(null, updateWrapper2);
+        ThrowUtils.throwIf(result2 != 1, ErrorCode.LIKE_FAILED);
+
+        // 4. 保存到 Redis 中
+        // 4.1 评论被哪些用户点赞过 set 集合
+        redisUtils.sadd(COMMENT_LIKED + commentId, userId.toString());
+        // 4.2 评论的点赞总数 +1
+        redisUtils.increment(COMMENT_LIKED_COUNTS + commentId, 1);
+    }
+
+    @Transactional
+    @Override
+    public void unlike(CommentUpdateRequest commentUpdateRequest) {
+        Long userId = commentUpdateRequest.getUserId();
+        Long commentId = commentUpdateRequest.getCommentId();
+        Long vlogId = commentUpdateRequest.getVlogId();
+        if(userId == null || commentId == null || vlogId == null){
+            ThrowUtils.throwException(ErrorCode.PARAMS_ERROR);
+        }
+
+        // 1. 判断当前登录用户是否已经点赞
+        Boolean isMember = redisUtils.isMember(COMMENT_LIKED + commentId, userId.toString());
+        ThrowUtils.throwIf(BooleanUtil.isFalse(isMember), ErrorCode.UN_LIKE);
+
+        // 2. 数据库点赞数 -1
+        LambdaUpdateWrapper<Comment> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(Comment::getId, commentId);
+        updateWrapper.setSql("like_counts = like_counts - 1");
+        int result = commentMapper.update(null, updateWrapper);
+        ThrowUtils.throwIf(result != 1, ErrorCode.UNLIKE_FAILED);
+
+        // 3. vlog 中的评论总数 -1
+        LambdaUpdateWrapper<Vlog> updateWrapper2 = new LambdaUpdateWrapper<>();
+        updateWrapper2.eq(Vlog::getId, vlogId);
+        updateWrapper2.setSql("comments_counts = comments_counts - 1");
+        int result2 = vlogMapper.update(null, updateWrapper2);
+        ThrowUtils.throwIf(result2 != 1, ErrorCode.UNLIKE_FAILED);
+
+        // 4. 修改 Redis 中的记录
+        // 4.1 删除用户点赞的记录
+        redisUtils.sdel(COMMENT_LIKED + commentId, userId.toString());
+        // 4.2 评论的点赞总数 -1
+        redisUtils.decrement(COMMENT_LIKED_COUNTS + commentId, 1);
     }
 }
 

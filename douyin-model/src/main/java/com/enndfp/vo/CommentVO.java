@@ -68,7 +68,7 @@ public class CommentVO {
     private Date createdTime;
 
     /**
-     * 评论是否被点赞
+     * 评论是否被用户点赞
      */
     private Integer isLike = 0;
 }

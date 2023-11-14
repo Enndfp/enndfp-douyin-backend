@@ -296,4 +296,34 @@ public class RedisUtils {
         return redisTemplate.opsForList().rightPush(key, value);
     }
 
+    /**
+     * 判断 set 中是否存在某个k-v
+     *
+     * @param key
+     * @param value
+     * @return
+     */
+    public Boolean isMember(String key, String value) {
+        return redisTemplate.opsForSet().isMember(key, value);
+    }
+
+    /**
+     * 向 set 添加k-v
+     *
+     * @param key
+     * @param value
+     */
+    public void sadd(String key, String value) {
+        redisTemplate.opsForSet().add(key, value);
+    }
+
+    /**
+     * 删除 set 记录
+     * @param key
+     * @param fields
+     */
+    public void sdel(String key, Object... fields) {
+        redisTemplate.opsForSet().remove(key, fields);
+    }
+
 }

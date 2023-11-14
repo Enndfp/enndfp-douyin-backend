@@ -2,6 +2,7 @@ package com.enndfp.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.enndfp.common.ErrorCode;
@@ -10,7 +11,6 @@ import com.enndfp.dto.vlog.VlogQueryRequest;
 import com.enndfp.mapper.MyLikedVlogMapper;
 import com.enndfp.mapper.VlogMapper;
 import com.enndfp.pojo.MyLikedVlog;
-import com.enndfp.pojo.User;
 import com.enndfp.pojo.Vlog;
 import com.enndfp.service.FansService;
 import com.enndfp.service.UserService;
@@ -242,12 +242,19 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog>
         int result = myLikedVlogMapper.insert(likedVlog);
         ThrowUtils.throwIf(result != 1, ErrorCode.LIKE_FAILED);
 
-        // 4. 保存成功后，视频和视频发布者的获赞都 +1
+        // 4. vlog 的喜欢数 +1
+        LambdaUpdateWrapper<Vlog> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(Vlog::getId, vlogId);
+        updateWrapper.setSql("like_counts = like_counts + 1");
+        int result2 = vlogMapper.update(null, updateWrapper);
+        ThrowUtils.throwIf(result2 != 1, ErrorCode.LIKE_FAILED);
+
+        // 5. 保存和修改成功后，视频和视频发布者的获赞都 +1
         redisUtils.increment(VLOG_LIKE_COUNTS_KEY + vlogId, 1);
         redisUtils.increment(VLOGER_LIKE_COUNTS_KEY + vlogerId, 1);
 
-        // 5. 在 Redis 中保存我点赞的视频
-        redisUtils.set(USER_LIKE_VLOG + userId + ":" + vlogId, "1");
+        // 6. 在 Redis 中保存我点赞的视频
+        redisUtils.sadd(VLOG_LIKED + vlogId, userId.toString());
     }
 
     @Transactional
@@ -262,12 +269,19 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog>
         int result = myLikedVlogMapper.delete(queryWrapper);
         ThrowUtils.throwIf(result != 1, ErrorCode.UNLIKE_FAILED);
 
-        // 3. 删除成功后，视频和视频发布者的获赞都 -1
+        // 3. vlog 的喜欢数 -1
+        LambdaUpdateWrapper<Vlog> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(Vlog::getId, vlogId);
+        updateWrapper.setSql("like_counts = like_counts - 1");
+        int result2 = vlogMapper.update(null, updateWrapper);
+        ThrowUtils.throwIf(result2 != 1, ErrorCode.LIKE_FAILED);
+
+        // 4. 删除成功后，视频和视频发布者的获赞都 -1
         redisUtils.decrement(VLOG_LIKE_COUNTS_KEY + vlogId, 1);
         redisUtils.decrement(VLOGER_LIKE_COUNTS_KEY + vlogerId, 1);
 
-        // 4. 删除 Redis 中我点赞的视频
-        redisUtils.del(USER_LIKE_VLOG + userId + ":" + vlogId);
+        // 5. 删除 Redis 中我点赞的视频
+        redisUtils.sdel(VLOG_LIKED + vlogId, userId.toString());
     }
 
     @Override
@@ -287,8 +301,7 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog>
      * @return
      */
     private boolean doILikeVlog(Long userId, Long vlogId) {
-        String doILike = redisUtils.get(USER_LIKE_VLOG + userId + ":" + vlogId);
-        return StringUtils.isNotBlank(doILike);
+        return redisUtils.isMember(VLOG_LIKED + vlogId, userId.toString());
     }
 
     /**
