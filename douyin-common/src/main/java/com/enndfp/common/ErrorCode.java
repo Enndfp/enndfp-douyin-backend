@@ -35,11 +35,11 @@ public enum ErrorCode {
     COMMENT_IS_NOT_EXIST(525, "该评论不存在，请重试！"),
     ALREADY_LIKE(526, "已点赞！"),
     UN_LIKE(527, "未点赞！"),
+    SMS_NEED_WAIT(528, "短信发送太快啦~请稍后再试！"),
 
 
 
     TICKET_INVALID(502, "会话失效，请重新登录！"),
-    SMS_NEED_WAIT_ERROR(505, "短信发送太快啦~请稍后再试！"),
     USER_FROZEN(507, "用户已被冻结，请联系管理员！"),
 
     USER_INACTIVE_ERROR(509, "请前往[账号设置]修改信息激活后再进行后续操作！"),

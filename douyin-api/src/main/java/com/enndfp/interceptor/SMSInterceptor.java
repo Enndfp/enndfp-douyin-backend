@@ -5,10 +5,8 @@ import com.enndfp.utils.IPUtils;
 import com.enndfp.utils.RedisUtils;
 import com.enndfp.utils.ThrowUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Bean;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -36,7 +34,7 @@ public class SMSInterceptor implements HandlerInterceptor {
         // 2. 判断 Redis 中是否存在，存在说明 60s 内用户再次请求则拦截
         boolean keyIsExist = redisUtils.keyIsExist(LOGIN_IP_KEY + userIp);
         if (keyIsExist) {
-            ThrowUtils.throwException(ErrorCode.SMS_NEED_WAIT_ERROR);
+            ThrowUtils.throwException(ErrorCode.SMS_NEED_WAIT);
             log.info("用户 60s 内再次请求发送验证码");
             return false;
         }

@@ -23,6 +23,10 @@ spring:
     port: 6379
     database: 1
     password: 123321
+  data:
+    mongodb:
+      uri: mongodb://root:root@192.168.88.128:27017
+      database: enndfp_douyin
 
 # MinIO 配置
 minio:

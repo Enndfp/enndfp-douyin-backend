@@ -11,12 +11,14 @@ import com.enndfp.dto.comment.CommentDeleteRequest;
 import com.enndfp.dto.comment.CommentPublishRequest;
 import com.enndfp.dto.comment.CommentQueryRequest;
 import com.enndfp.dto.comment.CommentUpdateRequest;
+import com.enndfp.enums.MessageEnum;
 import com.enndfp.enums.YesOrNo;
 import com.enndfp.mapper.CommentMapper;
 import com.enndfp.mapper.VlogMapper;
 import com.enndfp.pojo.Comment;
 import com.enndfp.pojo.Vlog;
 import com.enndfp.service.CommentService;
+import com.enndfp.service.MessageService;
 import com.enndfp.service.UserService;
 import com.enndfp.utils.RedisIdWorker;
 import com.enndfp.utils.RedisUtils;
@@ -33,8 +35,8 @@ import java.util.List;
 import java.util.Map;
 
 import static com.enndfp.constant.RedisConstants.*;
-import static com.enndfp.constant.VlogConstants.DEFAULT_CURRENT;
-import static com.enndfp.constant.VlogConstants.DEFAULT_PAGE_SIZE;
+import static com.enndfp.constant.PageConstants.DEFAULT_CURRENT;
+import static com.enndfp.constant.PageConstants.DEFAULT_PAGE_SIZE;
 
 /**
  * @author Enndfp
@@ -53,17 +55,20 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment>
     private UserService userService;
     @Resource
     private VlogMapper vlogMapper;
+    @Resource
+    private MessageService messageService;
 
     @Override
     public CommentVO publish(CommentPublishRequest commentPublishRequest) {
         Long commentUserId = commentPublishRequest.getCommentUserId();
+        Long vlogId = commentPublishRequest.getVlogId();
         Long vlogerId = commentPublishRequest.getVlogerId();
         Long fatherCommentId = commentPublishRequest.getFatherCommentId();
 
         // 1. 判断如果该条评论是子评论，则需要判断父评论是否存在
         if (fatherCommentId != null && fatherCommentId != 0) {
             LambdaQueryWrapper<Comment> queryWrapper = new LambdaQueryWrapper<>();
-            queryWrapper.eq(Comment::getFatherCommentId, fatherCommentId);
+            queryWrapper.eq(Comment::getId, fatherCommentId);
             Comment comment = commentMapper.selectOne(queryWrapper);
             ThrowUtils.throwIf(comment == null, ErrorCode.COMMENT_IS_NOT_EXIST);
         }
@@ -82,6 +87,19 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment>
 
         // 5. 在 Redis 中保存该视频的评论总数
         redisUtils.increment(VLOG_COMMENT_COUNTS + commentPublishRequest.getVlogId(), 1);
+
+        // 6. 发送系统消息：评论/回复
+        HashMap<String, Object> msgContent = new HashMap<>();
+        Vlog vlog = vlogMapper.selectById(vlogId);
+        msgContent.put("vlogId", vlog.getId());
+        msgContent.put("vlogCover", vlog.getCover());
+        msgContent.put("commentId", id);
+        msgContent.put("commentContent", commentPublishRequest.getContent());
+        Integer type = MessageEnum.COMMENT_VLOG.type;
+        if (fatherCommentId != null && fatherCommentId != 0) {
+            type = MessageEnum.REPLY_YOU.type;
+        }
+        messageService.createMsg(commentUserId, vlogerId, type, msgContent);
 
         return BeanUtil.copyProperties(comment, CommentVO.class);
     }
@@ -162,7 +180,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment>
         Long userId = commentUpdateRequest.getUserId();
         Long commentId = commentUpdateRequest.getCommentId();
         Long vlogId = commentUpdateRequest.getVlogId();
-        if(userId == null || commentId == null || vlogId == null){
+        if (userId == null || commentId == null || vlogId == null) {
             ThrowUtils.throwException(ErrorCode.PARAMS_ERROR);
         }
 
@@ -189,6 +207,15 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment>
         redisUtils.sadd(COMMENT_LIKED + commentId, userId.toString());
         // 4.2 评论的点赞总数 +1
         redisUtils.increment(COMMENT_LIKED_COUNTS + commentId, 1);
+
+        // 5. 发送系统消息：点赞评论
+        Map<String, Object> msgContent = new HashMap<>();
+        Comment comment = this.getById(commentId);
+        Vlog vlog = vlogMapper.selectById(vlogId);
+        msgContent.put("vlogId", vlogId);
+        msgContent.put("vlogCover", vlog.getCover());
+        msgContent.put("commentId", commentId);
+        messageService.createMsg(userId, comment.getCommentUserId(), MessageEnum.LIKE_COMMENT.type, msgContent);
     }
 
     @Transactional
@@ -197,7 +224,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment>
         Long userId = commentUpdateRequest.getUserId();
         Long commentId = commentUpdateRequest.getCommentId();
         Long vlogId = commentUpdateRequest.getVlogId();
-        if(userId == null || commentId == null || vlogId == null){
+        if (userId == null || commentId == null || vlogId == null) {
             ThrowUtils.throwException(ErrorCode.PARAMS_ERROR);
         }
 

@@ -5,7 +5,9 @@ package com.enndfp.constant;
  *
  * @author Enndfp
  */
-public class VlogConstants {
+public class PageConstants {
+
+    public static final Integer DEFAULT_CURRENT_ZERO = 0;
 
     public static final Integer DEFAULT_CURRENT = 1;
 

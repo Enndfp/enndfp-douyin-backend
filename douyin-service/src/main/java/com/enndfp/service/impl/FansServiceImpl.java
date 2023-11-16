@@ -4,10 +4,12 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.enndfp.common.ErrorCode;
+import com.enndfp.enums.MessageEnum;
 import com.enndfp.enums.YesOrNo;
 import com.enndfp.mapper.FansMapper;
 import com.enndfp.pojo.Fans;
 import com.enndfp.service.FansService;
+import com.enndfp.service.MessageService;
 import com.enndfp.utils.RedisIdWorker;
 import com.enndfp.utils.RedisUtils;
 import com.enndfp.utils.ThrowUtils;
@@ -21,8 +23,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.enndfp.constant.RedisConstants.*;
-import static com.enndfp.constant.VlogConstants.DEFAULT_CURRENT;
-import static com.enndfp.constant.VlogConstants.DEFAULT_PAGE_SIZE;
+import static com.enndfp.constant.PageConstants.DEFAULT_CURRENT;
+import static com.enndfp.constant.PageConstants.DEFAULT_PAGE_SIZE;
 
 /**
  * @author Enndfp
@@ -37,6 +39,8 @@ public class FansServiceImpl extends ServiceImpl<FansMapper, Fans>
     private RedisIdWorker redisIdWorker;
     @Resource
     private RedisUtils redisUtils;
+    @Resource
+    private MessageService messageService;
 
     @Transactional
     @Override
@@ -70,6 +74,9 @@ public class FansServiceImpl extends ServiceImpl<FansMapper, Fans>
 
         // 5. 我和博主的关联关系，依赖redis，不要存储数据库，避免db的性能瓶颈
         redisUtils.set(FANS_AND_VLOGER_RELATIONSHIP_KEY + fanId + ":" + vlogerId, "1");
+
+        // 6. 发送系统消息：关注
+        messageService.createMsg(fanId, vlogerId, MessageEnum.FOLLOW_YOU.type, null);
     }
 
     @Transactional
