@@ -1,7 +1,7 @@
 package com.enndfp.constant;
 
 /**
- * vlog基本信息常量
+ * 分页基本信息常量
  *
  * @author Enndfp
  */

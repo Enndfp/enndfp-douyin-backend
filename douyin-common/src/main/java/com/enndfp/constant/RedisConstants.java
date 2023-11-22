@@ -1,6 +1,7 @@
 package com.enndfp.constant;
 
 /**
+ * Redis 基本常量
  * @author Enndfp
  */
 public class RedisConstants {

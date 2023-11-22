@@ -36,7 +36,8 @@ public enum ErrorCode {
     ALREADY_LIKE(526, "已点赞！"),
     UN_LIKE(527, "未点赞！"),
     SMS_NEED_WAIT(528, "短信发送太快啦~请稍后再试！"),
-
+    MQ_MSG_SEND_FAILED(529, "MQ消息发送失败！"),
+    COMMENT_DELETE_FAILED(530, "评论删除失败！"),
 
 
     TICKET_INVALID(502, "会话失效，请重新登录！"),

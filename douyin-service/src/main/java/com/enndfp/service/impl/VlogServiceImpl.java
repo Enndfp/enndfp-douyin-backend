@@ -6,11 +6,13 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.enndfp.common.ErrorCode;
+import com.enndfp.constant.RabbitMQConstants;
 import com.enndfp.dto.vlog.VlogPublishRequest;
 import com.enndfp.dto.vlog.VlogQueryRequest;
 import com.enndfp.enums.MessageEnum;
 import com.enndfp.mapper.MyLikedVlogMapper;
 import com.enndfp.mapper.VlogMapper;
+import com.enndfp.mo.MessageMO;
 import com.enndfp.pojo.MyLikedVlog;
 import com.enndfp.pojo.Vlog;
 import com.enndfp.service.FansService;
@@ -22,6 +24,7 @@ import com.enndfp.utils.RedisUtils;
 import com.enndfp.utils.ThrowUtils;
 import com.enndfp.vo.VlogVO;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,7 +58,7 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog>
     @Resource
     private FansService fansService;
     @Resource
-    private MessageService messageService;
+    private RabbitTemplate rabbitTemplate;
 
     @Override
     public void publish(VlogPublishRequest vlogPublishRequest) {
@@ -260,11 +263,19 @@ public class VlogServiceImpl extends ServiceImpl<VlogMapper, Vlog>
         // 6. 在 Redis 中保存我点赞的视频
         redisUtils.sadd(VLOG_LIKED + vlogId, userId.toString());
 
-        // 7. 发送系统消息：点赞短视频
-        Map<String,Object> msgContent = new HashMap();
+        // 7. 异步解耦，用 RabbitMQ 发送系统消息：点赞短视频
+        MessageMO messageMO = new MessageMO();
+        messageMO.setFromUserId(userId);
+        messageMO.setToUserId(vlogerId);
+        Map<String, Object> msgContent = new HashMap<>();
         msgContent.put("vlogId", vlogId);
         msgContent.put("vlogCover", vlog.getCover());
-        messageService.createMsg(userId, vlogerId, MessageEnum.LIKE_VLOG.type, msgContent);
+        messageMO.setMsgContent(msgContent);
+
+        rabbitTemplate.convertAndSend(
+                RabbitMQConstants.SYS_MSG_EXCHANGE,
+                RabbitMQConstants.SYS_MSG_LIKE_VLOG_ROUTING_KEY,
+                messageMO);
     }
 
     @Transactional

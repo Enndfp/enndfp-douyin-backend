@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.enndfp.common.ErrorCode;
+import com.enndfp.constant.RabbitMQConstants;
 import com.enndfp.dto.comment.CommentDeleteRequest;
 import com.enndfp.dto.comment.CommentPublishRequest;
 import com.enndfp.dto.comment.CommentQueryRequest;
@@ -15,6 +16,7 @@ import com.enndfp.enums.MessageEnum;
 import com.enndfp.enums.YesOrNo;
 import com.enndfp.mapper.CommentMapper;
 import com.enndfp.mapper.VlogMapper;
+import com.enndfp.mo.MessageMO;
 import com.enndfp.pojo.Comment;
 import com.enndfp.pojo.Vlog;
 import com.enndfp.service.CommentService;
@@ -25,6 +27,8 @@ import com.enndfp.utils.RedisUtils;
 import com.enndfp.utils.ThrowUtils;
 import com.enndfp.vo.CommentVO;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.amqp.AmqpException;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,7 +60,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment>
     @Resource
     private VlogMapper vlogMapper;
     @Resource
-    private MessageService messageService;
+    private RabbitTemplate rabbitTemplate;
 
     @Override
     public CommentVO publish(CommentPublishRequest commentPublishRequest) {
@@ -88,18 +92,39 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment>
         // 5. 在 Redis 中保存该视频的评论总数
         redisUtils.increment(VLOG_COMMENT_COUNTS + commentPublishRequest.getVlogId(), 1);
 
-        // 6. 发送系统消息：评论/回复
+        // 6. 异步解耦，数据库评论数 + 1
+        Map<String, Object> map = new HashMap<>();
+        map.put("vlogId", vlogId);
+        try {
+            rabbitTemplate.convertAndSend(
+                    RabbitMQConstants.COMMENT_EXCHANGE,
+                    RabbitMQConstants.COMMENT_PUBLISH_ROUTING_KEY,
+                    map);
+        } catch (AmqpException e) {
+            log.error(e.toString());
+        }
+
+        // 7. 异步解耦，用 RabbitMQ 发送系统消息：评论/回复
         HashMap<String, Object> msgContent = new HashMap<>();
         Vlog vlog = vlogMapper.selectById(vlogId);
         msgContent.put("vlogId", vlog.getId());
         msgContent.put("vlogCover", vlog.getCover());
         msgContent.put("commentId", id);
         msgContent.put("commentContent", commentPublishRequest.getContent());
-        Integer type = MessageEnum.COMMENT_VLOG.type;
+
+        MessageMO messageMO = new MessageMO();
+        messageMO.setFromUserId(commentUserId);
+        messageMO.setToUserId(vlogerId);
+        messageMO.setMsgContent(msgContent);
+
+        String routingKey = RabbitMQConstants.SYS_MSG_COMMENT_ROUTING_KEY;
         if (fatherCommentId != null && fatherCommentId != 0) {
-            type = MessageEnum.REPLY_YOU.type;
+            routingKey = RabbitMQConstants.SYS_MSG_REPLAY_ROUTING_KEY;
         }
-        messageService.createMsg(commentUserId, vlogerId, type, msgContent);
+        rabbitTemplate.convertAndSend(
+                RabbitMQConstants.SYS_MSG_EXCHANGE,
+                routingKey,
+                messageMO);
 
         return BeanUtil.copyProperties(comment, CommentVO.class);
     }
@@ -160,23 +185,32 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment>
             ThrowUtils.throwException(ErrorCode.PARAMS_ERROR);
         }
 
-        // 2. 构造条件器
+        // 2. 修改 Redis 中评论的总数
+        redisUtils.decrement(VLOG_COMMENT_COUNTS + vlogId, 1);
+
+        // 3. 删除comment表中记录
         LambdaQueryWrapper<Comment> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Comment::getId, commentId);
         queryWrapper.eq(Comment::getCommentUserId, commentUserId);
-
-        // 3. 逻辑删除数据库中的记录
         int result = commentMapper.delete(queryWrapper);
-        ThrowUtils.throwIf(result != 1, ErrorCode.FAILED);
+        ThrowUtils.throwIf(result != 1, ErrorCode.COMMENT_DELETE_FAILED);
 
-        // 4. 修改 Redis 中评论的总数
-        redisUtils.decrement(VLOG_COMMENT_COUNTS + vlogId, 1);
+        // 3. 异步修改vlog表中的评论数
+        Map<String, Object> map = new HashMap<>();
+        map.put("vlogId", vlogId);
+        try {
+            rabbitTemplate.convertAndSend(
+                    RabbitMQConstants.COMMENT_EXCHANGE,
+                    RabbitMQConstants.COMMENT_DELETE_ROUTING_KEY,
+                    map);
+        } catch (AmqpException e) {
+            log.error(e.toString());
+        }
     }
 
     @Transactional
     @Override
     public void like(CommentUpdateRequest commentUpdateRequest) {
-        // TODO 点赞优化，可以异步更新数据库 消息队列
         Long userId = commentUpdateRequest.getUserId();
         Long commentId = commentUpdateRequest.getCommentId();
         Long vlogId = commentUpdateRequest.getVlogId();
@@ -188,34 +222,45 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment>
         Boolean isMember = redisUtils.isMember(COMMENT_LIKED + commentId, userId.toString());
         ThrowUtils.throwIf(BooleanUtil.isTrue(isMember), ErrorCode.ALREADY_LIKE);
 
-        // 2. 数据库点赞数 +1
-        LambdaUpdateWrapper<Comment> updateWrapper = new LambdaUpdateWrapper<>();
-        updateWrapper.eq(Comment::getId, commentId);
-        updateWrapper.setSql("like_counts = like_counts + 1");
-        int result = commentMapper.update(null, updateWrapper);
-        ThrowUtils.throwIf(result != 1, ErrorCode.LIKE_FAILED);
-
-        // 3. vlog 中的评论总数 +1
-        LambdaUpdateWrapper<Vlog> updateWrapper2 = new LambdaUpdateWrapper<>();
-        updateWrapper2.eq(Vlog::getId, vlogId);
-        updateWrapper2.setSql("comments_counts = comments_counts + 1");
-        int result2 = vlogMapper.update(null, updateWrapper2);
-        ThrowUtils.throwIf(result2 != 1, ErrorCode.LIKE_FAILED);
-
-        // 4. 保存到 Redis 中
-        // 4.1 评论被哪些用户点赞过 set 集合
+        // 2. 保存到 Redis 中
+        // 2.1 评论被哪些用户点赞过 set 集合
         redisUtils.sadd(COMMENT_LIKED + commentId, userId.toString());
-        // 4.2 评论的点赞总数 +1
+        // 2.2 评论的点赞总数 +1
         redisUtils.increment(COMMENT_LIKED_COUNTS + commentId, 1);
 
-        // 5. 发送系统消息：点赞评论
+        // 3. 异步解耦，数据库点赞数 +1
+        Map<String, Object> map = new HashMap<>();
+        map.put("commentId", commentId);
+        try {
+            rabbitTemplate.convertAndSend(
+                    RabbitMQConstants.COMMENT_EXCHANGE,
+                    RabbitMQConstants.COMMENT_INC_ROUTING_KEY,
+                    map);
+        } catch (AmqpException e) {
+            log.error(e.toString());
+        }
+
+        // 4. 异步解耦，用 RabbitMQ 发送系统消息：点赞评论
         Map<String, Object> msgContent = new HashMap<>();
         Comment comment = this.getById(commentId);
         Vlog vlog = vlogMapper.selectById(vlogId);
         msgContent.put("vlogId", vlogId);
         msgContent.put("vlogCover", vlog.getCover());
         msgContent.put("commentId", commentId);
-        messageService.createMsg(userId, comment.getCommentUserId(), MessageEnum.LIKE_COMMENT.type, msgContent);
+
+        MessageMO messageMO = new MessageMO();
+        messageMO.setFromUserId(userId);
+        messageMO.setToUserId(comment.getCommentUserId());
+        messageMO.setMsgContent(msgContent);
+
+        try {
+            rabbitTemplate.convertAndSend(
+                    RabbitMQConstants.SYS_MSG_EXCHANGE,
+                    RabbitMQConstants.SYS_MSG_LIKE_COMMENT_ROUTING_KEY,
+                    messageMO);
+        } catch (AmqpException e) {
+            log.error(e.toString());
+        }
     }
 
     @Transactional
@@ -232,25 +277,23 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment>
         Boolean isMember = redisUtils.isMember(COMMENT_LIKED + commentId, userId.toString());
         ThrowUtils.throwIf(BooleanUtil.isFalse(isMember), ErrorCode.UN_LIKE);
 
-        // 2. 数据库点赞数 -1
-        LambdaUpdateWrapper<Comment> updateWrapper = new LambdaUpdateWrapper<>();
-        updateWrapper.eq(Comment::getId, commentId);
-        updateWrapper.setSql("like_counts = like_counts - 1");
-        int result = commentMapper.update(null, updateWrapper);
-        ThrowUtils.throwIf(result != 1, ErrorCode.UNLIKE_FAILED);
-
-        // 3. vlog 中的评论总数 -1
-        LambdaUpdateWrapper<Vlog> updateWrapper2 = new LambdaUpdateWrapper<>();
-        updateWrapper2.eq(Vlog::getId, vlogId);
-        updateWrapper2.setSql("comments_counts = comments_counts - 1");
-        int result2 = vlogMapper.update(null, updateWrapper2);
-        ThrowUtils.throwIf(result2 != 1, ErrorCode.UNLIKE_FAILED);
-
-        // 4. 修改 Redis 中的记录
-        // 4.1 删除用户点赞的记录
+        // 2. 修改 Redis 中的记录
+        // 2.1 删除用户点赞的记录
         redisUtils.sdel(COMMENT_LIKED + commentId, userId.toString());
-        // 4.2 评论的点赞总数 -1
+        // 2.2 评论的点赞总数 -1
         redisUtils.decrement(COMMENT_LIKED_COUNTS + commentId, 1);
+
+        // 3. 异步解耦，数据库点赞数 -1
+        Map<String, Object> map = new HashMap<>();
+        map.put("commentId", commentId);
+        try {
+            rabbitTemplate.convertAndSend(
+                    RabbitMQConstants.COMMENT_EXCHANGE,
+                    RabbitMQConstants.COMMENT_DEC_ROUTING_KEY,
+                    map);
+        } catch (AmqpException e) {
+            log.error(e.toString());
+        }
     }
 }
 

@@ -2,7 +2,7 @@ package com.enndfp.service.impl;
 
 import com.enndfp.common.ErrorCode;
 import com.enndfp.enums.MessageEnum;
-import com.enndfp.message.MessageQueryRequest;
+import com.enndfp.dto.message.MessageQueryRequest;
 import com.enndfp.mo.MessageMO;
 import com.enndfp.pojo.User;
 import com.enndfp.repository.MessageRepository;

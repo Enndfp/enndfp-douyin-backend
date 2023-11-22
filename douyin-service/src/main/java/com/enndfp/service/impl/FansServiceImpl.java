@@ -1,12 +1,14 @@
 package com.enndfp.service.impl;
 
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.enndfp.common.ErrorCode;
-import com.enndfp.enums.MessageEnum;
+import com.enndfp.constant.RabbitMQConstants;
 import com.enndfp.enums.YesOrNo;
 import com.enndfp.mapper.FansMapper;
+import com.enndfp.mo.MessageMO;
 import com.enndfp.pojo.Fans;
 import com.enndfp.service.FansService;
 import com.enndfp.service.MessageService;
@@ -15,6 +17,7 @@ import com.enndfp.utils.RedisUtils;
 import com.enndfp.utils.ThrowUtils;
 import com.enndfp.vo.FansVO;
 import com.enndfp.vo.VlogerVO;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,6 +44,8 @@ public class FansServiceImpl extends ServiceImpl<FansMapper, Fans>
     private RedisUtils redisUtils;
     @Resource
     private MessageService messageService;
+    @Resource
+    private RabbitTemplate rabbitTemplate;
 
     @Transactional
     @Override
@@ -75,8 +80,15 @@ public class FansServiceImpl extends ServiceImpl<FansMapper, Fans>
         // 5. 我和博主的关联关系，依赖redis，不要存储数据库，避免db的性能瓶颈
         redisUtils.set(FANS_AND_VLOGER_RELATIONSHIP_KEY + fanId + ":" + vlogerId, "1");
 
-        // 6. 发送系统消息：关注
-        messageService.createMsg(fanId, vlogerId, MessageEnum.FOLLOW_YOU.type, null);
+        // 6. 异步解耦，用 RabbitMQ 发送系统消息：关注
+        MessageMO messageMO = new MessageMO();
+        messageMO.setFromUserId(fanId);
+        messageMO.setToUserId(vlogerId);
+
+        rabbitTemplate.convertAndSend(
+                RabbitMQConstants.SYS_MSG_EXCHANGE,
+                RabbitMQConstants.SYS_MSG_FOLLOW_ROUTING_KEY,
+                messageMO);
     }
 
     @Transactional

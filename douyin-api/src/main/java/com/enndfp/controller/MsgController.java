@@ -2,7 +2,7 @@ package com.enndfp.controller;
 
 import com.enndfp.common.BaseResponse;
 import com.enndfp.common.ErrorCode;
-import com.enndfp.message.MessageQueryRequest;
+import com.enndfp.dto.message.MessageQueryRequest;
 import com.enndfp.mo.MessageMO;
 import com.enndfp.service.MessageService;
 import com.enndfp.utils.ResultUtils;

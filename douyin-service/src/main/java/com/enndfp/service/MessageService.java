@@ -1,6 +1,6 @@
 package com.enndfp.service;
 
-import com.enndfp.message.MessageQueryRequest;
+import com.enndfp.dto.message.MessageQueryRequest;
 import com.enndfp.mo.MessageMO;
 
 import java.util.List;

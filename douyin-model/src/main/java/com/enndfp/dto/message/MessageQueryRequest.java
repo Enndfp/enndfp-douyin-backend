@@ -1,4 +1,4 @@
-package com.enndfp.message;
+package com.enndfp.dto.message;
 
 import lombok.Data;
 
